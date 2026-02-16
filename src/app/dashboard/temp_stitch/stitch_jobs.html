@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bhogal Auto Service - New Job Wizard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#246deb",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111721",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .damage-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">construction</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Bhogal Auto Service</h1>
+<span class="text-xs font-medium text-slate-500 uppercase tracking-widest">Service Management Portal</span>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Jobs</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Inventory</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Customers</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+<span class="text-xs font-bold text-primary">JD</span>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">New Job Wizard</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Efficient vehicle intake and high-speed service quoting.</p>
+</div>
+<div class="flex items-center gap-2 text-sm font-medium text-slate-500 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span>October 24, 2023</span>
+<span class="mx-2 text-slate-300">|</span>
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>09:42 AM</span>
+</div>
+</div>
+<!-- Section 1: Customer & Vehicle Lookup -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Customer Lookup -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">person_search</span>
+<h3 class="font-bold text-slate-900 dark:text-white">Customer Lookup</h3>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-primary focus:border-primary" placeholder="Search by Phone (e.g. 555-0123) or Name..." type="text"/>
+</div>
+<!-- Auto-complete Suggestion Sample -->
+<div class="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">AS</div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">Anita Sharma</p>
+<p class="text-xs text-slate-500">555-0192 • Last visit: 3 months ago</p>
+</div>
+</div>
+<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">VIP Loyalty</span>
+</div>
+</div>
+</div>
+<!-- Vehicle Lookup -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">directions_car</span>
+<h3 class="font-bold text-slate-900 dark:text-white">Vehicle Search</h3>
+</div>
+<div class="flex gap-3">
+<div class="flex-1 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">qr_code_scanner</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-primary focus:border-primary" placeholder="License Plate or VIN..." type="text"/>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold px-4 py-3 rounded-lg flex items-center gap-2 transition-colors border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">memory</span>
+                        Decode VIN
+                    </button>
+</div>
+<div class="mt-4 flex gap-4 text-sm">
+<div class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-400 font-medium">Model: <span class="text-slate-900 dark:text-white">2021 BMW X5</span></div>
+<div class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-400 font-medium">Engine: <span class="text-slate-900 dark:text-white">3.0L I6</span></div>
+</div>
+</div>
+</div>
+<!-- Section 2: Service Request Grid -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">list_alt</span>
+<h3 class="font-bold text-slate-900 dark:text-white">Service Request Details</h3>
+</div>
+<div class="flex gap-2">
+<button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold px-3 py-2 rounded-lg border border-primary/20 flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-sm">add_circle</span> OIL CHANGE
+                    </button>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold px-3 py-2 rounded-lg border border-primary/20 flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-sm">add_circle</span> BRAKE PADS
+                    </button>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold px-3 py-2 rounded-lg border border-primary/20 flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-sm">add_circle</span> SAFETY CHECK
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-950 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
+<th class="px-6 py-3">Service Description</th>
+<th class="px-6 py-3 w-32">Labor (Hrs)</th>
+<th class="px-6 py-3 w-32">Parts ($)</th>
+<th class="px-6 py-3 w-32">Total ($)</th>
+<th class="px-6 py-3 w-16"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr>
+<td class="px-6 py-4">
+<input class="w-full border-0 bg-transparent focus:ring-0 p-0 text-sm font-medium" type="text" value="Full Synthetic Oil Change &amp; Filter"/>
+</td>
+<td class="px-6 py-4">
+<input class="w-20 border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded text-sm text-center" type="number" value="0.5"/>
+</td>
+<td class="px-6 py-4">
+<input class="w-24 border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded text-sm text-center" type="number" value="45.00"/>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-900 dark:text-white">$115.00</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4">
+<input class="w-full border-0 bg-transparent focus:ring-0 p-0 text-sm font-medium" type="text" value="Brake Pad Swap (Front Axle)"/>
+</td>
+<td class="px-6 py-4">
+<input class="w-20 border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded text-sm text-center" type="number" value="1.5"/>
+</td>
+<td class="px-6 py-4">
+<input class="w-24 border-slate-200 dark:border-slate-800 dark:bg-slate-950 rounded text-sm text-center" type="number" value="120.00"/>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-900 dark:text-white">$330.00</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</td>
+</tr>
+<tr class="bg-slate-50/50 dark:bg-slate-950/30">
+<td class="px-6 py-4" colspan="5">
+<button class="flex items-center gap-2 text-primary font-bold text-xs hover:underline">
+<span class="material-symbols-outlined text-sm">add</span>
+                                    ADD CUSTOM LINE ITEM
+                                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Section 3: Damage Inspection & Notes -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">car_repair</span>
+<h3 class="font-bold text-slate-900 dark:text-white">Physical Condition &amp; Damage Map</h3>
+</div>
+<span class="text-xs text-slate-400 italic">Click on diagram to drop markers</span>
+</div>
+<div class="relative bg-slate-50 dark:bg-slate-950 rounded-xl p-8 flex items-center justify-center border border-dashed border-slate-200 dark:border-slate-800">
+<div class="relative w-full max-w-lg aspect-[2/1] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+<!-- Car Blueprint Placeholder -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 dark:opacity-40">
+<span class="material-symbols-outlined text-[12rem]">directions_car</span>
+</div>
+<!-- Top Down 2D Car Vector representation (CSS/Div based) -->
+<div class="absolute inset-0 p-10">
+<div class="relative w-full h-full flex flex-col items-center justify-center">
+<!-- Main body -->
+<div class="w-1/2 h-full bg-slate-200 dark:bg-slate-700 rounded-[2rem] border-4 border-slate-300 dark:border-slate-600 relative">
+<!-- Windshield -->
+<div class="absolute top-1/4 w-full h-1/4 bg-slate-400 dark:bg-slate-500 rounded-t-xl opacity-50"></div>
+<!-- Back Window -->
+<div class="absolute bottom-1/4 w-full h-1/6 bg-slate-400 dark:bg-slate-500 rounded-b-xl opacity-50"></div>
+<!-- Wheels -->
+<div class="absolute -left-3 top-4 w-4 h-12 bg-slate-900 rounded"></div>
+<div class="absolute -right-3 top-4 w-4 h-12 bg-slate-900 rounded"></div>
+<div class="absolute -left-3 bottom-4 w-4 h-12 bg-slate-900 rounded"></div>
+<div class="absolute -right-3 bottom-4 w-4 h-12 bg-slate-900 rounded"></div>
+</div>
+<!-- Sample Damage Markers -->
+<div class="damage-marker" style="top: 15%; left: 35%; cursor: pointer;" title="Dent on hood"></div>
+<div class="damage-marker" style="top: 75%; left: 62%; cursor: pointer;" title="Scratch on bumper"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<h3 class="font-bold text-slate-900 dark:text-white">Intake Notes</h3>
+</div>
+<textarea class="flex-1 w-full rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-primary focus:border-primary text-sm resize-none p-4" placeholder="Write internal notes about vehicle condition, customer concerns, or special requests..."></textarea>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2">
+<input class="rounded text-primary focus:ring-primary h-4 w-4" id="loaner" type="checkbox"/>
+<label class="text-sm font-medium text-slate-600 dark:text-slate-400" for="loaner">Loaner vehicle requested</label>
+</div>
+<div class="flex items-center gap-2">
+<input checked="" class="rounded text-primary focus:ring-primary h-4 w-4" id="wash" type="checkbox"/>
+<label class="text-sm font-medium text-slate-600 dark:text-slate-400" for="wash">Complimentary wash &amp; vac</label>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Footer -->
+<footer class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 py-4 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Grand Total</span>
+<span class="text-2xl font-black text-slate-900 dark:text-white leading-none">$445.00</span>
+</div>
+<div class="hidden sm:flex items-center gap-2 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-green-500">task_alt</span>
+<span>Ready for intake</span>
+</div>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-6 py-3 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                    Save Quote
+                </button>
+<button class="flex-1 md:flex-none px-6 py-3 font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors border border-primary/20">
+                    Convert to Work Order
+                </button>
+<button class="flex-1 md:flex-none px-10 py-3 font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">fact_check</span>
+                    CHECK IN
+                </button>
+</div>
+</div>
+</footer>
+</body></html>

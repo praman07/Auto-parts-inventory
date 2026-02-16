@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bhogal Auto Service - Control Panel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#246deb",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#111721",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 font-display">
+<!-- Wrapper -->
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-8 shrink-0 z-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center rounded-lg bg-primary p-1.5 text-white">
+<span class="material-symbols-outlined">car_repair</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-slate-900">Bhogal Auto Service</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Inventory</a>
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Customers</a>
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="h-10 w-64 rounded-lg border-slate-200 bg-slate-50 pl-10 pr-4 text-sm focus:border-primary focus:ring-primary" placeholder="Search..." type="text"/>
+</div>
+<button class="flex items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center">
+<img alt="User Profile" class="h-full w-full object-cover" data-alt="User profile avatar illustration" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5y6kJMk4954Bgoe2tshEawbCbS3tzXL2QIwhopOTjV41HgwAmHI7ZTV7xXTcqgmiCzXftmROxzMVXAbbBeIS6nah6-8d1vQmKXfSecVRRXSjO_6A0M5bb8BMPEGVYCDb1AiJWVfSKbnsQuBKNmiL1LOx6-mUO32jYalzwezIVjQwIYf7i7kqgmvvolhqBW5UCGeMBnmo6-5EQ778L49dLH-CNHjk8842HF5aX2XI2w0ynqc5c2VA16wg9feK_IWMyfcX4Tk9q5YI6"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 bg-white flex flex-col p-4 shrink-0">
+<div class="mb-4 px-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Settings Menu</p>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all shadow-primary/20" href="#">
+<span class="material-symbols-outlined">storefront</span>
+                        General Shop Info
+                    </a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+                        Team Access
+                    </a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+                        Labor Rates
+                    </a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+                        Tax Settings
+                    </a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined">notifications_active</span>
+                        Notifications
+                    </a>
+</nav>
+<div class="mt-auto border-t border-slate-100 pt-4">
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                        System Preferences
+                    </a>
+</div>
+</aside>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto bg-background-light p-8">
+<div class="mx-auto max-w-5xl">
+<!-- Page Header -->
+<div class="mb-8 flex items-end justify-between">
+<div>
+<div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-slate-900 font-medium">General Shop Info</span>
+</div>
+<h1 class="text-3xl font-black text-slate-900 tracking-tight">General Shop Info</h1>
+<p class="text-slate-500 mt-1">Manage your shop's core identity, scheduling, and regional preferences.</p>
+</div>
+<div class="flex items-center gap-3">
+<p class="text-xs text-slate-400 italic">Last saved: 2 minutes ago</p>
+<button class="rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 hover:bg-blue-700 transition-all">
+                                Save Changes
+                            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-8">
+<!-- Shop Identity Section -->
+<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-6">
+<span class="material-symbols-outlined text-primary">badge</span>
+                                Business Identity
+                            </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Shop Name</label>
+<input class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary" type="text" value="Bhogal Auto Service"/>
+</div>
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
+<input class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary" type="tel" value="+91 98765-43210"/>
+</div>
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Physical Address</label>
+<textarea class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary" rows="3">Street No. 12, Industrial Area-B, Ludhiana, Punjab 141003</textarea>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center space-y-4">
+<label class="block w-full text-sm font-bold text-slate-700">Shop Logo</label>
+<div class="group relative flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-primary hover:bg-slate-100">
+<div class="flex items-center justify-center rounded-full bg-white p-4 shadow-sm group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+</div>
+<p class="mt-4 text-xs font-semibold text-slate-500">Drag and drop or click to upload</p>
+<p class="text-[10px] text-slate-400">PNG, JPG up to 10MB</p>
+<div class="absolute inset-0 opacity-0 bg-primary/5 rounded-xl pointer-events-none group-hover:opacity-100"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Labor Rates Section (Card Interface) -->
+<section class="space-y-4">
+<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900 px-1">
+<span class="material-symbols-outlined text-primary">sell</span>
+                                Labor Rates
+                            </h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Standard Rate -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+<div class="flex items-center justify-between mb-4">
+<div class="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Default</span>
+</div>
+<h4 class="font-bold text-slate-900">Standard Rate</h4>
+<p class="text-xs text-slate-500 mb-4 leading-relaxed">Baseline hourly service fee for routine maintenance and minor repairs.</p>
+<div class="flex items-end gap-1">
+<span class="text-slate-400 font-bold mb-1.5">$</span>
+<input class="w-full rounded-lg border-slate-200 text-2xl font-black text-slate-900 focus:border-primary focus:ring-primary p-2" type="number" value="85.00"/>
+<span class="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
+</div>
+</div>
+<!-- Diagnostic Rate -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+<div class="flex items-center justify-between mb-4">
+<div class="rounded-lg bg-blue-50 p-2 text-blue-600">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+</div>
+<h4 class="font-bold text-slate-900">Diagnostic Rate</h4>
+<p class="text-xs text-slate-500 mb-4 leading-relaxed">Specialized troubleshooting rate for complex electrical and engine issues.</p>
+<div class="flex items-end gap-1">
+<span class="text-slate-400 font-bold mb-1.5">$</span>
+<input class="w-full rounded-lg border-slate-200 text-2xl font-black text-slate-900 focus:border-primary focus:ring-primary p-2" type="number" value="120.00"/>
+<span class="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
+</div>
+</div>
+<!-- Fleet Rate -->
+<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+<div class="flex items-center justify-between mb-4">
+<div class="rounded-lg bg-purple-50 p-2 text-purple-600">
+<span class="material-symbols-outlined">business</span>
+</div>
+</div>
+<h4 class="font-bold text-slate-900">Fleet Rate</h4>
+<p class="text-xs text-slate-500 mb-4 leading-relaxed">Discounted baseline rate reserved for long-term business account contracts.</p>
+<div class="flex items-end gap-1">
+<span class="text-slate-400 font-bold mb-1.5">$</span>
+<input class="w-full rounded-lg border-slate-200 text-2xl font-black text-slate-900 focus:border-primary focus:ring-primary p-2" type="number" value="70.00"/>
+<span class="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Operating Hours & Regional Settings Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Operating Hours Grid -->
+<section class="col-span-1 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-6">
+<span class="material-symbols-outlined text-primary">schedule</span>
+                                    Operating Hours
+                                </h3>
+<div class="space-y-3">
+<div class="grid grid-cols-12 items-center gap-4 bg-slate-50/50 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Monday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OPEN</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="09:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="18:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Tuesday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OPEN</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="09:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="18:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 bg-slate-50/50 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Wednesday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OPEN</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="09:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="18:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Thursday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OPEN</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="09:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="18:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 bg-slate-50/50 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Friday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">OPEN</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="09:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="20:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Saturday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">LTD HOURS</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="10:00"/>
+<span class="text-slate-400 text-xs">—</span>
+<input class="rounded border-slate-200 bg-white py-1 px-2 text-xs focus:ring-primary" type="time" value="14:00"/>
+</div>
+</div>
+<div class="grid grid-cols-12 items-center gap-4 bg-slate-50/50 p-2 rounded-lg border border-transparent transition-all hover:border-slate-200">
+<span class="col-span-3 text-sm font-bold text-slate-700">Sunday</span>
+<div class="col-span-2">
+<span class="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">CLOSED</span>
+</div>
+<div class="col-span-7 flex items-center justify-end gap-2">
+<span class="text-xs text-slate-400 font-medium italic">Shop is not operational</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Regional Preferences -->
+<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-6">
+<span class="material-symbols-outlined text-primary">public</span>
+                                    Regional
+                                </h3>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Currency</label>
+<select class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary">
+<option>USD ($) - US Dollar</option>
+<option selected="">INR (₹) - Indian Rupee</option>
+<option>EUR (€) - Euro</option>
+<option>GBP (£) - British Pound</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Date Format</label>
+<select class="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary">
+<option>MM/DD/YYYY</option>
+<option selected="">DD/MM/YYYY</option>
+<option>YYYY-MM-DD</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-bold text-slate-700 mb-1.5">Default Tax %</label>
+<div class="relative">
+<input class="w-full rounded-lg border-slate-200 text-sm pr-10 focus:border-primary focus:ring-primary" step="0.1" type="number" value="18.0"/>
+<span class="absolute right-3 top-2 text-slate-400 text-sm font-bold">%</span>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-100">
+<div class="flex items-center gap-3">
+<div class="flex h-5 w-5 items-center justify-center rounded border border-primary bg-primary text-white">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<span class="text-sm font-medium text-slate-700">Auto-calculate regional taxes</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer Info -->
+<div class="mt-12 mb-8 flex items-center justify-center gap-4 text-xs text-slate-400 font-medium">
+<span>Bhogal Auto Service v4.2.0</span>
+<span class="h-1 w-1 rounded-full bg-slate-300"></span>
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<span class="h-1 w-1 rounded-full bg-slate-300"></span>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

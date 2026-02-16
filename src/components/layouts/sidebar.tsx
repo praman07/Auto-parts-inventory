@@ -1,0 +1,102 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Users } from "lucide-react";
+import { useState, useRef } from "react";
+import { navItems } from "@/components/layouts/nav-config";
+
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
+  const pathname = usePathname();
+  const [isHovered, setIsHovered] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => setIsHovered(false), 200);
+  };
+
+  const isExpanded = isHovered;
+
+  return (
+    <aside
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "relative flex flex-col border-r border-white/[0.06] bg-zinc-950 text-white transition-all duration-300 ease-in-out z-30",
+        isExpanded ? "w-52" : "w-14",
+        className
+      )}
+    >
+      {/* Logo */}
+      <div className={cn("flex h-11 items-center border-b border-white/[0.06] px-3 overflow-hidden", isExpanded ? "justify-start" : "justify-center")}>
+        <span className={cn(
+          "text-xs font-bold tracking-widest text-white/80 uppercase whitespace-nowrap transition-opacity duration-200",
+          isExpanded ? "opacity-100" : "opacity-0 w-0"
+        )}>
+          Bhogal
+        </span>
+        {!isExpanded && (
+          <span className="text-xs font-bold text-white/50">B</span>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        <ul className="space-y-0.5 px-1.5">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors whitespace-nowrap overflow-hidden",
+                    isActive
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/35 hover:text-white/60 hover:bg-white/[0.04]",
+                    !isExpanded && "justify-center"
+                  )}
+                  title={!isExpanded ? item.title : undefined}
+                >
+                  <item.icon className={cn("h-4 w-4 flex-shrink-0", isExpanded ? "mr-2.5" : "", isActive ? "text-white/80" : "")} strokeWidth={1.5} />
+                  <span className={cn(
+                    "transition-opacity duration-200",
+                    isExpanded ? "opacity-100" : "opacity-0 w-0"
+                  )}>
+                    {item.title}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-white/[0.06] p-2.5">
+        <div className={cn("flex items-center overflow-hidden", !isExpanded ? "justify-center" : "gap-2.5")}>
+          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center flex-shrink-0">
+            <Users className="h-3 w-3 text-white/40" strokeWidth={1.5} />
+          </div>
+          <div className={cn(
+            "flex flex-col overflow-hidden transition-opacity duration-200",
+            isExpanded ? "opacity-100" : "opacity-0 w-0"
+          )}>
+            <span className="truncate text-[11px] font-medium text-white/60">Owner</span>
+            <span className="truncate text-[10px] text-white/25">owner@bhogal.com</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}

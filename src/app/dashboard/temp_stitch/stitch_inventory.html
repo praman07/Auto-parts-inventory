@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bhogal Auto Service - Inventory Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#246deb",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111721",
+                        "danger": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .high-density-table td, .high-density-table th { padding: 0.5rem 0.75rem; }
+        .row-action-hover { opacity: 0; transition: opacity 0.2s; }
+        tr:hover .row-action-hover { opacity: 1; }
+        .sparkline {
+            height: 40px;
+            width: 100%;
+            background: linear-gradient(90deg, #246deb 0%, #246deb 20%, transparent 20%, transparent 25%, #246deb 25%, #246deb 45%, transparent 45%, transparent 50%, #246deb 50%, #246deb 70%, transparent 70%, transparent 75%, #246deb 75%, #246deb 100%);
+            background-size: 15px 100%;
+            mask-image: linear-gradient(0deg, #fff 20%, transparent 20%, transparent 40%, #fff 40%, #fff 60%, transparent 60%, transparent 80%, #fff 80%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
+<div class="flex h-screen w-full flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex h-16 w-full items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 z-20">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="flex h-8 w-8 items-center justify-center rounded bg-primary text-white">
+<span class="material-symbols-outlined text-xl">directions_car</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Bhogal Auto Service</h1>
+</div>
+<nav class="hidden md:flex items-center gap-1">
+<a class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-400" href="#">Dashboard</a>
+<a class="px-3 py-2 text-sm font-medium text-primary border-b-2 border-primary" href="#">Inventory</a>
+<a class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-400" href="#">Orders</a>
+<a class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-400" href="#">Suppliers</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="h-9 w-full rounded-lg border-slate-200 bg-slate-50 pl-10 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800" placeholder="Search inventory..." type="text"/>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border border-slate-300 dark:border-slate-600">
+<img alt="User profile image" data-alt="Avatar of user profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB2qe_BvNeMg0P7WjMKK_vI_GYzyJZgRV_zY0DyEWUx9aMIb42KmrY7Ihna5r5u_gr0k_vQMTq2FqgTl_6Zk3PCSDJBrhgw9fV4OdOOupn-EMR3nNECXCFEnQJsuIJMvSfMu8_JGDe0lDxjOsQEJNq8TL3H5M2w9tSyvaGkpSLay2onWl6-dRTxjjUGW_HmjPHuO7aYCRfQVfCTql4pcSbaSqI9YqQ-zJD4ZjfRw6VyBvJy1SgX6Jw_-3IMm9_2MVgEAGFxZvvYpSH"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Main Content -->
+<main class="flex flex-1 flex-col bg-white dark:bg-slate-900 overflow-hidden">
+<!-- Control Bar -->
+<div class="flex flex-col border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between p-4 px-6">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Add Product
+                        </button>
+<button class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-lg">unarchive</span>
+                            Import/Export
+                        </button>
+</div>
+<div class="flex items-center gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+<button class="rounded-md bg-white px-4 py-1.5 text-xs font-bold text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white">Parts</button>
+<button class="px-4 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400">Tires</button>
+<button class="px-4 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400">Fluids</button>
+</div>
+</div>
+<!-- Smart Filters -->
+<div class="flex items-center gap-3 overflow-x-auto px-6 pb-4 scrollbar-hide">
+<button class="flex items-center gap-2 whitespace-nowrap rounded-full border border-danger/30 bg-danger/5 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10">
+<span class="h-2 w-2 rounded-full bg-danger"></span>
+                        Low Stock (14)
+                    </button>
+<button class="flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+<span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                        Out of Stock (3)
+                    </button>
+<button class="flex items-center gap-2 whitespace-nowrap rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10">
+<span class="material-symbols-outlined text-sm">payments</span>
+                        High Value
+                    </button>
+<button class="flex items-center gap-2 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        Fast Moving
+                    </button>
+</div>
+</div>
+<!-- Data Grid -->
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left high-density-table border-separate border-spacing-0">
+<thead class="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 shadow-sm">
+<tr class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+<th class="border-b border-slate-200 dark:border-slate-700">SKU</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Part Name</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Category</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Bin Loc</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Qty</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Unit Price</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Markup</th>
+<th class="border-b border-slate-200 dark:border-slate-700">Retail</th>
+<th class="border-b border-slate-200 dark:border-slate-700 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-[13px] dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="group hover:bg-primary/[0.03] transition-colors bg-white dark:bg-slate-900">
+<td class="font-mono font-medium text-slate-500 dark:text-slate-400">BH-9921</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">Ceramic Brake Pad Set</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Brakes</span></td>
+<td class="text-slate-500 dark:text-slate-400">A1-402</td>
+<td><span class="font-bold text-danger">3</span></td>
+<td class="text-slate-500 dark:text-slate-400">$45.00</td>
+<td class="text-slate-500 dark:text-slate-400">20%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$54.00</td>
+<td class="text-right">
+<div class="row-action-hover flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/10 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-100 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 (Selected) -->
+<tr class="bg-primary/10 border-l-4 border-l-primary group transition-colors">
+<td class="font-mono font-medium text-primary">BH-1042</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">Synthetic Oil 5W30 (5L)</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Fluids</span></td>
+<td class="text-slate-500 dark:text-slate-400">B2-110</td>
+<td><span class="font-bold text-emerald-600">42</span></td>
+<td class="text-slate-500 dark:text-slate-400">$28.50</td>
+<td class="text-slate-500 dark:text-slate-400">35%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$38.48</td>
+<td class="text-right">
+<div class="flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/20 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-100 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-200 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-primary/[0.03] transition-colors bg-white dark:bg-slate-900">
+<td class="font-mono font-medium text-slate-500 dark:text-slate-400">BH-4432</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">Oil Filter High Perf</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Engine</span></td>
+<td class="text-slate-500 dark:text-slate-400">A3-12</td>
+<td><span class="font-bold text-danger">4</span></td>
+<td class="text-slate-500 dark:text-slate-400">$12.00</td>
+<td class="text-slate-500 dark:text-slate-400">25%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$15.00</td>
+<td class="text-right">
+<div class="row-action-hover flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/10 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-100 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-primary/[0.03] transition-colors bg-white dark:bg-slate-900">
+<td class="font-mono font-medium text-slate-500 dark:text-slate-400">BH-8821</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">All-Season Tire 18" Z-Rated</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Tires</span></td>
+<td class="text-slate-500 dark:text-slate-400">R-01</td>
+<td><span class="font-bold text-slate-900 dark:text-slate-100">12</span></td>
+<td class="text-slate-500 dark:text-slate-400">$110.00</td>
+<td class="text-slate-500 dark:text-slate-400">15%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$126.50</td>
+<td class="text-right">
+<div class="row-action-hover flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/10 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-100 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+<!-- Additional Dummy Rows for Density -->
+<tr class="group hover:bg-primary/[0.03] transition-colors bg-white dark:bg-slate-900">
+<td class="font-mono font-medium text-slate-500 dark:text-slate-400">BH-2210</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">Coolant Green (1L)</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Fluids</span></td>
+<td class="text-slate-500 dark:text-slate-400">B2-115</td>
+<td><span class="font-bold text-danger">2</span></td>
+<td class="text-slate-500 dark:text-slate-400">$6.00</td>
+<td class="text-slate-500 dark:text-slate-400">40%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$8.40</td>
+<td class="text-right">
+<div class="row-action-hover flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/10 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-100 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+<tr class="group hover:bg-primary/[0.03] transition-colors bg-white dark:bg-slate-900">
+<td class="font-mono font-medium text-slate-500 dark:text-slate-400">BH-7712</td>
+<td class="font-semibold text-slate-900 dark:text-slate-100">LED Headlight Bulb H11</td>
+<td><span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">Lighting</span></td>
+<td class="text-slate-500 dark:text-slate-400">C1-12</td>
+<td><span class="font-bold text-slate-900 dark:text-slate-100">18</span></td>
+<td class="text-slate-500 dark:text-slate-400">$14.50</td>
+<td class="text-slate-500 dark:text-slate-400">50%</td>
+<td class="font-medium text-slate-900 dark:text-slate-100">$21.75</td>
+<td class="text-right">
+<div class="row-action-hover flex justify-end gap-1">
+<button class="p-1 text-primary hover:bg-primary/10 rounded"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><span class="material-symbols-outlined text-lg">inventory_2</span></button>
+<button class="p-1 text-slate-400 hover:bg-slate-100 rounded"><span class="material-symbols-outlined text-lg">history</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+<!-- Side Detail Panel -->
+<aside class="w-80 border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 flex flex-col overflow-y-auto">
+<div class="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-800">
+<h3 class="font-bold text-slate-900 dark:text-white">Part Details</h3>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="p-5 flex flex-col gap-6">
+<!-- Image & ID -->
+<div class="space-y-3">
+<div class="aspect-square w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden group">
+<img class="h-full w-full object-cover transition-transform group-hover:scale-105" data-alt="Close up of a synthetic oil bottle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzJafA9hwEJLOJD0TH2MqfQ5EcbyiozospbuvpW4b72T1QCCQRNKmVwVh6MTeGfcGNEr-reu-BntM23hQBaIvdL1YRpVmTXZVyBbcMR8Aq2h1VbrTnYdx7vp2YwBtK9HMFPSyBwyoV0XNeVro8QjFeqDBeFilY_z4Ue5vKuxYDviy0HDStCLB8RJMWID9BJceSuQscZpbfWrL0QFLznUd5n4-A17AR4OnpyzpAJBGMfSH5RVsvrhEsyNS7rjAmQvmyasFlg7rUjDCe"/>
+</div>
+<div>
+<span class="text-[10px] font-bold uppercase text-primary">BH-1042</span>
+<h2 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Synthetic Oil 5W30 (5L)</h2>
+<p class="text-sm text-slate-500 mt-1">High-performance synthetic lubricant for modern engines.</p>
+</div>
+</div>
+<!-- Supplier Info -->
+<div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-sm">local_shipping</span>
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Supplier Info</h4>
+</div>
+<div class="text-sm">
+<p class="font-semibold text-slate-900 dark:text-white">Castrol Direct Supply</p>
+<p class="text-slate-500 text-xs mt-0.5">Contact: Mike Henderson</p>
+<p class="text-slate-500 text-xs">+1 (555) 012-3456</p>
+</div>
+</div>
+<!-- Usage Trend -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">30-Day Usage Trend</h4>
+<span class="text-xs font-medium text-emerald-600">+12% vs last month</span>
+</div>
+<div class="sparkline rounded-md bg-slate-50 dark:bg-slate-800/50 relative">
+<!-- Abstract overlay for sparkline look -->
+<div class="absolute inset-0 opacity-20 bg-gradient-to-t from-primary to-transparent"></div>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-400 uppercase">Lead Time</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">3 Days</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-400 uppercase">Min Level</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">10</p>
+</div>
+</div>
+<!-- Action -->
+<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+                    One-Click Reorder
+                </button>
+</div>
+</aside>
+</div>
+</div>
+</body></html>
