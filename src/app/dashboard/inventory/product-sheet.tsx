@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { X, Loader2, ChevronDown, Plus, Check, Sparkles, Package } from "lucide-react"
+import { X, Loader2, ChevronDown, Plus, Check, Sparkles, Package, CloudUpload } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -9,6 +9,7 @@ interface ProductSheetProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSaved: () => void
+    initialData?: any // Added for editing
 }
 
 const UNIT_TYPES = ["Piece", "Box", "Set", "Bottle", "Pair", "Kit"] as const
@@ -357,7 +358,7 @@ function BikeSheet({
 }
 
 /* ── main sheet ─────────────────────────────────────────── */
-export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps) {
+export function ProductSheet({ open, onOpenChange, onSaved, initialData }: ProductSheetProps) {
     const nameRef = useRef<HTMLInputElement>(null)
 
     // Data
@@ -379,6 +380,7 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
     const [stockQuantity, setStockQuantity] = useState("")
     const [lowStockThreshold, setLowStockThreshold] = useState("5")
     const [trackInventory, setTrackInventory] = useState(true)
+    const [imageUrl, setImageUrl] = useState("")
     const [sku, setSku] = useState("")
     const [autoSku, setAutoSku] = useState(true)
     const [description, setDescription] = useState("")
@@ -414,9 +416,30 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
     useEffect(() => {
         if (open) {
             loadData()
+            if (initialData) {
+                setName(initialData.name || "")
+                setCategoryId(initialData.category_id || "")
+                setSubcategoryId(initialData.subcategory_id || "")
+                setSupplierId(initialData.supplier_id || "")
+                setSellingPrice(String(initialData.selling_price || ""))
+                setCostPrice(String(initialData.cost_price || ""))
+                setStockQuantity(String(initialData.stock_quantity || ""))
+                setLowStockThreshold(String(initialData.low_stock_threshold || "5"))
+                setTrackInventory(initialData.low_stock_threshold > 0)
+                setImageUrl(initialData.image_url || "")
+                setSku(initialData.sku || "")
+                setAutoSku(!initialData.sku)
+                setDescription(initialData.description || "")
+                setPartNumber(initialData.part_number || "")
+                setIsUniversal(initialData.is_universal)
+                setSelectedBikeIds(initialData.compatibility?.map((c: any) => c.id) || [])
+                setShowOptional(!!(initialData.description || initialData.part_number || initialData.sku))
+            } else {
+                resetForm()
+            }
             setTimeout(() => nameRef.current?.focus(), 150)
         }
-    }, [open, loadData])
+    }, [open, loadData, initialData])
 
     // Reset subcategory when category changes
     useEffect(() => {
@@ -450,6 +473,7 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
         setIsUniversal(false)
         setSelectedCompanyId("")
         setSelectedBikeIds([])
+        setImageUrl("")
         setShowOptional(false)
     }
 
@@ -530,7 +554,8 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
 
             const initialQty = parseInt(stockQuantity) || 0
 
-            const { data, error } = await supabase.from("products").insert({
+            let res;
+            const productPayload = {
                 shop_id: shopId,
                 name: name.trim(),
                 category_id: categoryId || null,
@@ -543,10 +568,20 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
                 stock_quantity: parseInt(stockQuantity) || 0,
                 low_stock_threshold: trackInventory ? (parseInt(lowStockThreshold) || 5) : 0,
                 is_universal: isUniversal,
+                image_url: imageUrl.trim() || null,
                 description: description.trim() || null,
-            }).select("id").single()
+            }
 
-            if (error) { console.error(error); toast.error("Failed to save product"); return }
+            if (initialData?.id) {
+                res = await supabase.from("products").update(productPayload).eq("id", initialData.id).select("id").single()
+                // Clear old compatibility
+                await supabase.from("product_bikes").delete().eq("product_id", initialData.id)
+            } else {
+                res = await supabase.from("products").insert(productPayload).select("id").single()
+            }
+
+            if (res.error) { console.error(res.error); toast.error("Failed to save product"); return }
+            const data = res.data
 
             // Compatibility
             if (!isUniversal && selectedBikeIds.length > 0) {
@@ -557,8 +592,8 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
                 await supabase.from("product_bikes").insert(inserts)
             }
 
-            // Initial Stock Movement
-            if (initialQty > 0) {
+            // Initial Stock Movement (Only for new)
+            if (!initialData?.id && initialQty > 0) {
                 await supabase.from("stock_movements").insert({
                     shop_id: shopId,
                     product_id: data.id,
@@ -595,16 +630,16 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
         <div className="fixed inset-0 z-50 flex justify-end">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
 
-            <div className="relative w-[480px] max-w-full bg-zinc-950 border-l border-white/[0.08] flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="relative w-[900px] max-w-full bg-black border-l border-white/[0.08] flex flex-col animate-in slide-in-from-right duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
-                            <Package className="w-4 h-4 text-white/50" />
+                        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                            <Package className="w-5 h-5 text-orange-500" />
                         </div>
                         <div>
-                            <h2 className="text-[15px] font-bold text-white">New Product</h2>
-                            <p className="text-[11px] text-white/30">Add to inventory</p>
+                            <h2 className="text-[15px] font-black text-white tracking-tight">{initialData?.id ? "Edit Inventory" : "New Inventory Unit"}</h2>
+                            <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest">{initialData?.id ? "Modify existing record" : "Register new unit"}</p>
                         </div>
                     </div>
                     <button onClick={() => onOpenChange(false)} className="p-1.5 text-white/25 hover:text-white/50 hover:bg-white/[0.04] rounded-lg transition-colors">
@@ -613,236 +648,283 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
                 </div>
 
                 {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="p-6 space-y-5">
-
-                        {/* ─── MANDATORY ─── */}
-                        <div>
-                            <label className="block text-[11px] font-semibold text-white/50 mb-1.5">Product Name *</label>
-                            <input
-                                ref={nameRef}
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Brake Pads — Front"
-                                autoFocus
-                                className="w-full h-12 px-4 text-[15px] bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/40 transition-all"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <Dropdown
-                                label="Category *"
-                                value={categoryId}
-                                options={categories}
-                                onChange={setCategoryId}
-                                onCreate={createCategory}
-                                placeholder="Type to search or create..."
-                            />
-                            {categoryId && filteredSubs.length > 0 ? (
-                                <Dropdown
-                                    label="Subcategory (Type to create)"
-                                    value={subcategoryId}
-                                    options={filteredSubs}
-                                    onChange={setSubcategoryId}
-                                    onCreate={createSubcategory}
-                                    placeholder="Type to add new..."
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="p-8 grid grid-cols-12 gap-x-8 gap-y-6">
+                        {/* LEFT COLUMN: Identity & Media (Col 1-5) */}
+                        <div className="col-span-12 lg:col-span-5 space-y-6">
+                            {/* Product Name */}
+                            <div>
+                                <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2.5">Product Name *</label>
+                                <input
+                                    ref={nameRef}
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="e.g. Brake Pads — Front"
+                                    autoFocus
+                                    className="w-full h-14 px-5 text-[16px] bg-white/[0.03] border border-white/[0.1] rounded-2xl text-white placeholder:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500/40 transition-all font-black tracking-tight"
                                 />
-                            ) : categoryId ? (
-                                <Dropdown
-                                    label="Subcategory"
-                                    value={subcategoryId}
-                                    options={[]}
-                                    onChange={setSubcategoryId}
-                                    onCreate={createSubcategory}
-                                    placeholder="+ Create"
-                                />
-                            ) : (
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-white/50 mb-1.5">Subcategory</label>
-                                    <div className="h-11 px-3.5 flex items-center text-[14px] text-white/15 bg-white/[0.02] border border-white/[0.04] rounded-xl">
-                                        Pick category first
+                            </div>
+
+                            {/* Image Upload System */}
+                            <div>
+                                <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2.5">Product Asset / Photo</label>
+                                <div
+                                    onClick={() => document.getElementById('product-image-upload')?.click()}
+                                    className="relative aspect-square w-full rounded-3xl bg-white/[0.02] border border-dashed border-white/[0.1] overflow-hidden flex flex-col items-center justify-center cursor-pointer group hover:bg-white/[0.04] hover:border-orange-500/30 transition-all duration-300"
+                                >
+                                    {imageUrl ? (
+                                        <>
+                                            <img src={imageUrl} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
+                                                <CloudUpload className="text-white w-8 h-8 mb-2" />
+                                                <span className="text-[10px] font-black uppercase text-white tracking-widest">Update Photo</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-3 p-8 text-center">
+                                            <div className="w-14 h-14 rounded-2xl bg-white/[0.03] flex items-center justify-center border border-white/[0.05]">
+                                                <Plus className="text-white/20 w-6 h-6 group-hover:text-orange-500 transition-colors" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[11px] font-black text-white/40 uppercase tracking-widest">Upload Local File</p>
+                                                <p className="text-[9px] text-zinc-600 font-bold leading-relaxed px-4">JPEG, PNG or WEB-P supported. Clear photos improve sales.</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        id="product-image-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            const fileExt = file.name.split('.').pop();
+                                            const fileName = `${Math.random()}.${fileExt}`;
+                                            const filePath = `products/${fileName}`;
+
+                                            toast.loading("Uploading photo...");
+
+                                            const { error: uploadError } = await supabase.storage
+                                                .from('inventory')
+                                                .upload(filePath, file);
+
+                                            if (uploadError) {
+                                                toast.error("Upload failed: " + uploadError.message);
+                                                return;
+                                            }
+
+                                            const { data: { publicUrl } } = supabase.storage
+                                                .from('inventory')
+                                                .getPublicUrl(filePath);
+
+                                            setImageUrl(publicUrl);
+                                            toast.dismiss();
+                                            toast.success("Photo synced");
+                                        }}
+                                    />
+                                </div>
+                                <div className="mt-3">
+                                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1.5 ml-1">Or Direct Link</p>
+                                    <input
+                                        type="text"
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full h-10 px-4 text-[12px] bg-white/[0.02] border border-white/[0.05] rounded-xl text-white/50 placeholder:text-zinc-800 transition-all font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Profit Insights */}
+                            {cost > 0 && sell > 0 && (
+                                <div className="p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                            <Sparkles className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">Projected Gain</p>
+                                            <p className="text-[15px] font-black text-emerald-400 tabular-nums">₹{profit.toFixed(0)} <span className="text-[10px] text-emerald-500/40 ml-1">NET</span></p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest">Margin</p>
+                                        <p className={`text-[15px] font-black tabular-nums ${margin >= 20 ? "text-emerald-400" : margin >= 10 ? "text-amber-400" : "text-red-400"}`}>
+                                            {margin.toFixed(1)}%
+                                        </p>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-[11px] font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Selling Price (₹) *</label>
-                                <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    step="0.01"
-                                    value={sellingPrice}
-                                    onChange={(e) => setSellingPrice(e.target.value)}
-                                    placeholder="0.00"
-                                    className="w-full h-12 px-4 text-[18px] font-semibold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/40 transition-all tabular-nums"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Opening Stock</label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    value={stockQuantity}
-                                    onChange={(e) => setStockQuantity(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full h-12 px-4 text-[18px] font-semibold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/40 transition-all tabular-nums"
-                                />
-                            </div>
-                        </div>
-
-                        {/* ─── HIGH-VALUE ─── */}
-                        <div className="border-t border-white/[0.04] pt-5 space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
+                        {/* RIGHT COLUMN: Configuration & Specs (Col 6-12) */}
+                        <div className="col-span-12 lg:col-span-7 space-y-8 lg:pl-4 lg:border-l lg:border-white/[0.04]">
+                            {/* Section: Taxonomy */}
+                            <div className="space-y-4">
+                                <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-4">Taxonomy & Source</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Dropdown
+                                        label="Primary Category *"
+                                        value={categoryId}
+                                        options={categories}
+                                        onChange={setCategoryId}
+                                        onCreate={createCategory}
+                                        placeholder="Pick Section..."
+                                    />
+                                    {categoryId && filteredSubs.length > 0 ? (
+                                        <Dropdown
+                                            label="Subcategory / Placement"
+                                            value={subcategoryId}
+                                            options={filteredSubs}
+                                            onChange={setSubcategoryId}
+                                            onCreate={createSubcategory}
+                                            placeholder="Pick Detail..."
+                                        />
+                                    ) : categoryId ? (
+                                        <Dropdown
+                                            label="Subcategory / Placement"
+                                            value={subcategoryId}
+                                            options={[]}
+                                            onChange={setSubcategoryId}
+                                            onCreate={createSubcategory}
+                                            placeholder="+ Create New"
+                                        />
+                                    ) : (
+                                        <div>
+                                            <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Subcategory</label>
+                                            <div className="h-11 px-4 flex items-center text-[13px] text-white/10 bg-white/[0.01] border border-white/[0.04] rounded-xl italic">
+                                                Identify category first
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                                 <Dropdown
-                                    label="Supplier"
+                                    label="Original Supplier / Dealer"
                                     value={supplierId}
                                     options={suppliers}
                                     onChange={setSupplierId}
                                     onCreate={createSupplier}
-                                    placeholder="Optional"
+                                    placeholder="Search manufacturers..."
                                 />
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-white/50 mb-1.5">Unit Type</label>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {UNIT_TYPES.map((u) => (
-                                            <button
-                                                key={u}
-                                                type="button"
-                                                onClick={() => setUnitType(u)}
-                                                className={`px-2.5 py-1.5 text-[11px] font-semibold rounded-lg transition-colors ${unitType === u
-                                                    ? "bg-white/[0.12] text-white border border-white/[0.15]"
-                                                    : "text-white/35 hover:text-white/60 border border-transparent hover:border-white/[0.06]"
-                                                    }`}
-                                            >
-                                                {u}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
 
-                            {/* Cost Price + Margin */}
-                            <div>
-                                <label className="block text-[11px] font-semibold text-white/50 mb-1.5">Cost Price (₹)</label>
-                                <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    step="0.01"
-                                    value={costPrice}
-                                    onChange={(e) => setCostPrice(e.target.value)}
-                                    placeholder="0.00"
-                                    className="w-full h-11 px-4 text-[15px] bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 transition-all tabular-nums"
-                                />
-                                {cost > 0 && sell > 0 && (
-                                    <div className="flex items-center gap-3 mt-2 px-1">
-                                        <div className="flex items-center gap-1.5">
-                                            <Sparkles className="w-3 h-3 text-emerald-400" />
-                                            <span className="text-[12px] font-semibold text-emerald-400">
-                                                ₹{profit.toFixed(0)} profit
-                                            </span>
-                                        </div>
-                                        <span className="text-[12px] font-semibold text-white/30">·</span>
-                                        <span className={`text-[12px] font-semibold ${margin >= 20 ? "text-emerald-400" : margin >= 10 ? "text-amber-400" : "text-red-400"}`}>
-                                            {margin.toFixed(1)}% margin
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                            {/* Section: Inventory Strategy */}
+                            <div className="space-y-5 pt-6 border-t border-white/[0.06]">
+                                <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4">Inventory Strategy</p>
 
-                            {/* Track Inventory Toggle */}
-                            <div className="flex items-center justify-between py-2">
-                                <div>
-                                    <p className="text-[13px] font-medium text-white/70">Track Inventory</p>
-                                    <p className="text-[11px] text-white/25">Monitor stock levels for this product</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setTrackInventory(!trackInventory)}
-                                    className={`relative w-10 h-[22px] rounded-full transition-colors ${trackInventory ? "bg-emerald-500" : "bg-white/[0.08]"}`}
-                                >
-                                    <div className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${trackInventory ? "left-[22px]" : "left-[3px]"}`} />
-                                </button>
-                            </div>
-
-                            {trackInventory && (
-                                <div className="space-y-4 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-[11px] font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Low Stock Alert Quantity</label>
+                                        <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Retail Selling Price (₹) *</label>
                                         <div className="relative">
                                             <input
                                                 type="number"
-                                                inputMode="numeric"
-                                                value={lowStockThreshold}
-                                                onChange={(e) => setLowStockThreshold(e.target.value)}
-                                                placeholder="0"
-                                                className="w-full h-11 px-4 text-[15px] font-semibold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 transition-all tabular-nums"
+                                                inputMode="decimal"
+                                                step="0.01"
+                                                value={sellingPrice}
+                                                onChange={(e) => setSellingPrice(e.target.value)}
+                                                placeholder="0.00"
+                                                className="w-full h-14 px-5 text-[22px] font-black bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-emerald-400 placeholder:text-emerald-900/30 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all tabular-nums"
                                             />
-                                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                                <span className="text-[11px] font-bold text-white/20 uppercase">Units</span>
-                                            </div>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/40 font-black">MRP</div>
                                         </div>
-                                        <p className="mt-1.5 text-[10px] text-white/25">You will be notified to restock when quantity hits this number.</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Opening Physical Stock</label>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            value={stockQuantity}
+                                            onChange={(e) => setStockQuantity(e.target.value)}
+                                            placeholder="0"
+                                            className="w-full h-14 px-5 text-[22px] font-black bg-white/[0.02] border border-white/[0.08] rounded-2xl text-white placeholder:text-white/10 focus:outline-none focus:ring-4 focus:ring-white/5 transition-all tabular-nums"
+                                        />
                                     </div>
                                 </div>
-                            )}
 
-                            {/* Compatibility System */}
-                            <div className="pt-4 border-t border-white/[0.04]">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <p className="text-[13px] font-bold text-white">Bike Compatibility</p>
-                                        <p className="text-[11px] text-white/30">Select specific bikes or mark as universal</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-semibold text-white/40 uppercase tracking-tighter">Specific Models</span>
+                                <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.04] space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${trackInventory ? "bg-orange-500/10 text-orange-500" : "bg-white/5 text-white/20"}`}>
+                                                <Package className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[12px] font-black text-white/80 uppercase">Threshold Management</p>
+                                                <p className="text-[10px] text-white/30 font-bold italic">Automatic alerts for low stock</p>
+                                            </div>
+                                        </div>
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                const newVal = !isUniversal; // if it was universal (toggle off), newVal is false (stay universal) - wait
-                                                // Let's use isUniversal directly but label it as "Specific Models"
-                                                // If toggle is ON -> Specific Models (isUniversal = false)
-                                                // If toggle is OFF -> Universal (isUniversal = true)
-                                                setIsUniversal(!isUniversal)
-                                            }}
-                                            className={`relative w-10 h-[22px] rounded-full transition-colors ${!isUniversal ? "bg-violet-500" : "bg-white/[0.08]"}`}
+                                            onClick={() => setTrackInventory(!trackInventory)}
+                                            className={`relative w-12 h-6 rounded-full transition-all ${trackInventory ? "bg-orange-500 shadow-lg shadow-orange-500/20" : "bg-white/10"}`}
                                         >
-                                            <div className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${!isUniversal ? "left-[22px]" : "left-[3px]"}`} />
+                                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${trackInventory ? "left-7" : "left-1"}`} />
+                                        </button>
+                                    </div>
+
+                                    {trackInventory && (
+                                        <div className="animate-in slide-in-from-top-1 duration-200">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="number"
+                                                        value={lowStockThreshold}
+                                                        onChange={(e) => setLowStockThreshold(e.target.value)}
+                                                        className="w-full h-10 px-4 bg-black/40 border border-white/10 rounded-xl text-white font-bold text-sm"
+                                                    />
+                                                </div>
+                                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Action At</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Compatibility Section */}
+                            <div className="pt-6 border-t border-white/[0.06]">
+                                <div className="flex items-center justify-between mb-5">
+                                    <div>
+                                        <p className="text-[10px] font-black text-violet-500 uppercase tracking-[0.2em]">Vehicle Compatibility</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-black text-white/30 uppercase">Specific Setup</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsUniversal(!isUniversal)}
+                                            className={`relative w-12 h-6 rounded-full transition-all ${!isUniversal ? "bg-violet-500 shadow-lg shadow-violet-500/20" : "bg-white/10"}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${!isUniversal ? "left-7" : "left-1"}`} />
                                         </button>
                                     </div>
                                 </div>
 
-                                {!isUniversal && (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                                        <div className="grid grid-cols-2 gap-3 items-end">
+                                {!isUniversal ? (
+                                    <div className="space-y-4 p-5 bg-violet-500/[0.02] border border-violet-500/10 rounded-3xl animate-in zoom-in-95 duration-300">
+                                        <div className="grid grid-cols-2 gap-4">
                                             <Dropdown
-                                                label="Filter Manufacturer"
+                                                label="Filter Brand"
                                                 value={selectedCompanyId}
                                                 options={companies}
-                                                onChange={(id) => {
-                                                    setSelectedCompanyId(id)
-                                                }}
+                                                onChange={setSelectedCompanyId}
                                                 onCreate={createCompany}
-                                                placeholder="All Companies"
+                                                placeholder="All Brands"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setIsBikeSheetOpen(true)}
-                                                className="h-11 px-3.5 flex items-center justify-center gap-2 text-[12px] font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white/70 hover:bg-white/[0.08] hover:text-white transition-colors"
+                                                className="h-11 px-4 flex items-center justify-center gap-2 text-[12px] font-black bg-white/[0.03] border border-white/[0.1] rounded-xl text-white hover:bg-white/[0.06] transition-all"
                                             >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                Add Bike
+                                                <Plus className="w-4 h-4" /> Add Model
                                             </button>
                                         </div>
-
                                         <MultiSelectDropdown
-                                            label="Select Compatible Models *"
+                                            label="Compatible Models *"
                                             values={selectedBikeIds}
                                             options={selectedCompanyId ? filteredBikes : bikes}
                                             onChange={setSelectedBikeIds}
-                                            placeholder={selectedCompanyId ? `Select ${companies.find(c => c.id === selectedCompanyId)?.name} models...` : "Choose models"}
+                                            placeholder="Pick compatible units..."
                                             showActions
                                             onClearAll={() => setSelectedBikeIds([])}
                                             onSelectAll={selectedCompanyId ? () => {
@@ -852,97 +934,111 @@ export function ProductSheet({ open, onOpenChange, onSaved }: ProductSheetProps)
                                             } : undefined}
                                         />
                                     </div>
+                                ) : (
+                                    <div className="p-6 bg-emerald-500/[0.02] border border-emerald-500/10 rounded-3xl flex items-center justify-center gap-4">
+                                        <Sparkles className="w-5 h-5 text-emerald-500/40" />
+                                        <p className="text-[11px] font-black text-emerald-500/60 uppercase tracking-widest">Universal fitment — applicable to all bikes</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Additional Metadata */}
+                            <div className="pt-6 border-t border-white/[0.06]">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOptional(!showOptional)}
+                                    className="w-full flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl hover:bg-white/[0.04] transition-all group"
+                                >
+                                    <span className="text-[11px] font-black text-white/40 uppercase tracking-widest group-hover:text-white/60 transition-colors">Advanced Logistics (Cost, SKU, P/N)</span>
+                                    <ChevronDown className={`w-4 h-4 text-white/20 transition-transform duration-300 ${showOptional ? "rotate-180" : ""}`} />
+                                </button>
+
+                                {showOptional && (
+                                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-5 pb-4 animate-in slide-in-from-top-2 duration-300">
+                                        <div>
+                                            <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Internal Cost (₹)</label>
+                                            <input
+                                                type="number"
+                                                value={costPrice}
+                                                onChange={(e) => setCostPrice(e.target.value)}
+                                                className="w-full h-11 px-4 bg-white/[0.04] border border-white/10 rounded-xl text-white/70 font-bold"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Part Number</label>
+                                            <input
+                                                type="text"
+                                                value={partNumber}
+                                                onChange={(e) => setPartNumber(e.target.value)}
+                                                className="w-full h-11 px-4 bg-white/[0.04] border border-white/10 rounded-xl text-white font-bold"
+                                                placeholder="e.g. 12345-ABC"
+                                            />
+                                        </div>
+                                        <div className="col-span-2 space-y-2.5">
+                                            <div className="flex items-center justify-between px-1">
+                                                <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest">Internal SKU</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAutoSku(!autoSku)}
+                                                    className={`text-[9px] font-black uppercase tracking-[0.15em] px-2 py-1 rounded-md border transition-all ${autoSku ? "bg-orange-500/10 border-orange-500/20 text-orange-500" : "bg-white/5 border-white/10 text-white/30"}`}
+                                                >
+                                                    {autoSku ? "Auto-Generate: ON" : "Manual entry"}
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={autoSku ? "SYSTEM-GENERATED" : sku}
+                                                onChange={(e) => setSku(e.target.value)}
+                                                disabled={autoSku}
+                                                placeholder="Pick unique SKU..."
+                                                className="w-full h-11 px-4 bg-white/[0.02] border border-white/10 rounded-xl text-white font-bold disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Internal Description / Notes</label>
+                                            <textarea
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                className="w-full h-24 p-4 bg-white/[0.02] border border-white/10 rounded-2xl text-white/60 text-sm italic resize-none"
+                                                placeholder="Add internal notes, storage location, or additional specs..."
+                                            />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
-
-                        {/* ─── OPTIONAL ─── */}
-                        <button
-                            type="button"
-                            onClick={() => setShowOptional(!showOptional)}
-                            className="flex items-center gap-1.5 text-[11px] font-semibold text-white/30 hover:text-white/50 transition-colors"
-                        >
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showOptional ? "rotate-180" : ""}`} />
-                            {showOptional ? "Hide" : "More"} options
-                        </button>
-
-                        {showOptional && (
-                            <div className="space-y-4 animate-in slide-in-from-top-2 duration-150">
-                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/[0.04]">
-                                    {/* Part Number */}
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-white/50 mb-1.5 uppercase tracking-wider">Part Number</label>
-                                        <input
-                                            type="text"
-                                            value={partNumber}
-                                            onChange={(e) => setPartNumber(e.target.value)}
-                                            placeholder="Manufacturer P/N"
-                                            className="w-full h-11 px-4 text-[14px] bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/10"
-                                        />
-                                    </div>
-
-                                    {/* SKU */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">SKU</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setAutoSku(!autoSku)}
-                                                className={`text-[9px] font-bold uppercase tracking-tighter transition-colors ${autoSku ? "text-violet-400" : "text-white/25"}`}
-                                            >
-                                                {autoSku ? "Auto" : "Manual"}
-                                            </button>
-                                        </div>
-                                        {autoSku ? (
-                                            <div className="h-11 px-4 flex items-center text-[14px] text-white/20 bg-white/[0.02] border border-white/[0.04] rounded-xl font-mono">
-                                                {categoryId ? generateSku() : "Will auto-generate"}
-                                            </div>
-                                        ) : (
-                                            <input
-                                                type="text"
-                                                value={sku}
-                                                onChange={(e) => setSku(e.target.value)}
-                                                placeholder="e.g. BRK-0042"
-                                                className="w-full h-11 px-4 text-[14px] bg-white/[0.04] border border-white/[0.08] rounded-xl text-white font-mono placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/10"
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-white/50 mb-1.5">Description</label>
-                                    <textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Optional notes..."
-                                        rows={2}
-                                        className="w-full px-4 py-3 text-[14px] bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 resize-none"
-                                    />
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                {/* ─── Footer ─── */}
-                <div className="px-6 py-4 border-t border-white/[0.06] flex items-center gap-2">
+                {/* ─── Footer / Actions ─── */}
+                <div className="px-8 py-6 border-t border-white/[0.06] bg-zinc-900/50 backdrop-blur-xl flex items-center gap-4">
                     <button
                         type="button"
-                        onClick={() => handleSave(true)}
-                        disabled={saving}
-                        className="flex-1 h-11 text-[13px] font-semibold border border-white/[0.1] text-white/60 rounded-xl hover:bg-white/[0.04] hover:text-white transition-colors disabled:opacity-40"
+                        onClick={() => onOpenChange(false)}
+                        className="h-12 px-6 text-[13px] font-black text-white/40 hover:text-white transition-colors"
                     >
-                        Save & Add Another
+                        Discard
                     </button>
+                    <div className="flex-1" />
+                    {!initialData?.id && (
+                        <button
+                            type="button"
+                            onClick={() => handleSave(true)}
+                            disabled={saving}
+                            className="h-12 px-6 text-[13px] font-black border border-white/[0.08] text-white/60 rounded-2xl hover:bg-white/[0.05] hover:text-white transition-all disabled:opacity-40"
+                        >
+                            Save & Add Another
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => handleSave(false)}
                         disabled={saving}
-                        className="flex-1 h-11 text-[13px] font-semibold bg-white text-zinc-900 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
+                        className="h-12 px-10 text-[13px] font-black bg-orange-500 text-white rounded-2xl hover:bg-orange-400 shadow-lg shadow-orange-500/20 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
                     >
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                        {saving ? "Saving..." : "Save Product"}
+                        {saving ? "Processing..." : initialData?.id ? "Update Changes" : "Confirm Entry"}
                     </button>
                 </div>
             </div>

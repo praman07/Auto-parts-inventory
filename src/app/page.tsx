@@ -1,31 +1,21 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+"use client";
 
-export default function Home() {
+import { Hero } from "@/components/marketing/Hero";
+import { Footer } from "@/components/layouts/footer";
+import { UserHeader } from "@/components/layouts/user-header";
+
+import { UserSecurity } from "@/components/UserSecurity";
+
+export default function LandingPage() {
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-foreground">
-      <div className="space-y-6 text-center animate-in fade-in zoom-in duration-500">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-            BHOGAL AUTO
-          </h1>
-          <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl">
-            Elite Inventory Management for Modern Workshops.
-          </p>
-        </div>
-        <div className="flex justify-center gap-4">
-          <Link href="/dashboard">
-            <Button size="lg" className="h-12 px-8 text-lg rounded-full">
-              Enter Dashboard
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-        </div>
+    <UserSecurity>
+      <div className="flex flex-col min-h-screen bg-zinc-950 font-sans antialiased text-white">
+        <UserHeader />
+        <main className="flex-1 pt-16 md:pt-20">
+          <Hero />
+        </main>
+        <Footer />
       </div>
-      <div className="absolute bottom-8 text-xs text-muted-foreground">
-        © 2026 Bhogal Auto Service. All rights reserved.
-      </div>
-    </div>
+    </UserSecurity>
   );
 }

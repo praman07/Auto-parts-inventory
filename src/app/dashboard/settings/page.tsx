@@ -1,283 +1,259 @@
 "use client"
-// Trigger rebuild
 
-
-import React from "react"
+import React, { useEffect, useState } from "react"
 import {
     Store,
-    Users,
-    CreditCard,
-    FileText,
-    Bell,
-    Settings,
-    BadgeCheck,
-    Tag,
+    Phone,
     Clock,
     Globe,
     CloudUpload,
     CheckCircle,
-    PieChart,
-    Building2
+    MapPin,
+    MessageCircle,
+    Info,
+    RefreshCw,
+    Lock,
+    Eye,
+    EyeOff,
 } from "lucide-react"
-import { Button } from "../../../components/ui/button"
-import { Input } from "../../../components/ui/input"
-import { Textarea } from "../../../components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../../../components/ui/select"
-
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function SettingsPage() {
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [settings, setSettings] = useState({
+        id: "",
+        address: "",
+        working_hours: "",
+        contact_phone: "",
+        contact_whatsapp: "",
+        contact_email: "",
+        about_text: "",
+        admin_password: "",
+    })
+    const [showPin, setShowPin] = useState(false)
+
+    useEffect(() => {
+        fetchSettings()
+    }, [])
+
+    async function fetchSettings() {
+        setLoading(true)
+        try {
+            const { data, error } = await supabase.from("settings").select("*").limit(1)
+            if (error) throw error
+            if (data && data.length > 0) {
+                const s = data[0]
+                setSettings({
+                    id: s.id || "",
+                    address: s.address || "",
+                    working_hours: s.working_hours || "",
+                    contact_phone: s.contact_phone || "",
+                    contact_whatsapp: s.contact_whatsapp || "",
+                    contact_email: s.contact_email || "",
+                    about_text: s.about_text || "",
+                    admin_password: s.admin_password || "",
+                })
+            }
+        } catch (err: any) {
+            console.error("Error fetching settings:", err.message || err)
+            toast.error("Failed to load settings profile")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function handleSave() {
+        setSaving(true)
+        try {
+            const { error } = await supabase
+                .from("settings")
+                .update({
+                    address: settings.address,
+                    working_hours: settings.working_hours,
+                    contact_phone: settings.contact_phone,
+                    contact_whatsapp: settings.contact_whatsapp,
+                    contact_email: settings.contact_email,
+                    about_text: settings.about_text,
+                    admin_password: settings.admin_password,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("id", settings.id)
+
+            if (error) throw error
+            toast.success("Settings updated successfully")
+        } catch (err: any) {
+            console.error("Error saving settings:", err.message)
+            toast.error("Failed to save settings: " + err.message)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64 text-zinc-500">
+                <RefreshCw className="w-6 h-6 animate-spin mr-3" />
+                <span className="font-bold uppercase tracking-widest text-xs">Loading shop config...</span>
+            </div>
+        )
+    }
+
     return (
-        <div className="flex flex-col lg:flex-row gap-6 h-full">
-            {/* Sidebar Navigation */}
-            <aside className="w-full lg:w-64 flex flex-col shrink-0 lg:border-r lg:border-slate-200 dark:lg:border-slate-800 lg:pr-6">
-                <div className="mb-4 px-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Settings Menu</p>
+        <div className="max-w-4xl space-y-8 pb-20 animate-in fade-in duration-500">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-white/5 pb-8">
+                <div>
+                    <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
+                        <Store className="text-orange-500 w-8 h-8" /> Shop Control
+                    </h1>
+                    <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 italic">Dynamically sync shop details across the entire platform</p>
                 </div>
-                <nav className="space-y-1">
-                    <Button variant="ghost" className="w-full justify-start gap-3 bg-primary text-white hover:bg-primary/90 shadow-sm shadow-primary/20">
-                        <Store className="w-4 h-4" />
-                        General Shop Info
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-slate-600 dark:text-slate-400">
-                        <Users className="w-4 h-4" />
-                        Team Access
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-slate-600 dark:text-slate-400">
-                        <CreditCard className="w-4 h-4" />
-                        Labor Rates
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-slate-600 dark:text-slate-400">
-                        <FileText className="w-4 h-4" />
-                        Tax Settings
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-slate-600 dark:text-slate-400">
-                        <Bell className="w-4 h-4" />
-                        Notifications
-                    </Button>
-                </nav>
-                <div className="mt-auto border-t border-slate-100 dark:border-slate-800 pt-4">
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-slate-600 dark:text-slate-400">
-                        <Settings className="w-4 h-4" />
-                        System Preferences
+                <div className="flex items-center gap-4">
+                    <Button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-white text-zinc-950 hover:bg-zinc-100 h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-white/5"
+                    >
+                        {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+                        Commit Changes
                     </Button>
                 </div>
-            </aside>
+            </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 space-y-8 pb-10">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-                            <span>Settings</span>
-                            <span className="text-[10px]">&gt;</span>
-                            <span className="text-slate-900 dark:text-white font-medium">General Shop Info</span>
-                        </div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">General Shop Info</h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your shop's core identity, scheduling, and regional preferences.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <p className="text-xs text-slate-400 italic hidden sm:block">Last saved: 2 minutes ago</p>
-                        <Button className="shadow-lg shadow-primary/30">Save Changes</Button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-8">
-                    {/* Shop Identity Section */}
-                    <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm">
-                        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white mb-6">
-                            <BadgeCheck className="text-primary w-5 h-5" />
-                            Business Identity
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column: Essential Info */}
+                <div className="space-y-8">
+                    <section className="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+                        <h3 className="flex items-center gap-3 text-lg font-black text-white uppercase tracking-tighter">
+                            <Info className="text-blue-500 w-5 h-5" /> Public Identity
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Shop Name</label>
-                                    <Input defaultValue="Bhogal Auto Service" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Phone Number</label>
-                                    <Input type="tel" defaultValue="+91 98765-43210" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Physical Address</label>
-                                    <Textarea rows={3} defaultValue="Street No. 12, Industrial Area-B, Ludhiana, Punjab 141003" />
-                                </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Shop Bio / About</label>
+                                <Textarea
+                                    className="bg-black/50 border-white/10 rounded-2xl min-h-[120px] text-zinc-300 font-medium p-4 focus:border-orange-500/50 transition-all"
+                                    placeholder="Enter shop description for the footer..."
+                                    value={settings.about_text}
+                                    onChange={(e) => setSettings({ ...settings, about_text: e.target.value })}
+                                />
                             </div>
-                            <div className="flex flex-col items-center justify-center space-y-4">
-                                <label className="block w-full text-sm font-bold text-slate-700 dark:text-slate-300">Shop Logo</label>
-                                <div className="group relative flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 transition-colors hover:border-primary hover:bg-slate-100 dark:hover:bg-slate-800">
-                                    <div className="flex items-center justify-center rounded-full bg-white dark:bg-slate-800 p-4 shadow-sm group-hover:scale-110 transition-transform">
-                                        <CloudUpload className="text-primary w-8 h-8" />
-                                    </div>
-                                    <p className="mt-4 text-xs font-semibold text-slate-500">Drag and drop or click to upload</p>
-                                    <p className="text-[10px] text-slate-400">PNG, JPG up to 10MB</p>
-                                </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Physical Location</label>
+                                <Textarea
+                                    className="bg-black/50 border-white/10 rounded-2xl min-h-[80px] text-zinc-300 font-medium p-4 focus:border-orange-500/50 transition-all"
+                                    placeholder="Street, City, Pin..."
+                                    value={settings.address}
+                                    onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                                />
                             </div>
                         </div>
                     </section>
 
-                    {/* Labor Rates Section */}
-                    <section className="space-y-4">
-                        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white px-1">
-                            <Tag className="text-primary w-5 h-5" />
-                            Labor Rates
+                    <section className="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+                        <h3 className="flex items-center gap-3 text-lg font-black text-white uppercase tracking-tighter">
+                            <Clock className="text-emerald-500 w-5 h-5" /> Operational Hours
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Standard Rate */}
-                            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-2 text-emerald-600">
-                                        <CheckCircle className="w-5 h-5" />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Default</span>
-                                </div>
-                                <h4 className="font-bold text-slate-900 dark:text-white">Standard Rate</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Baseline hourly service fee for routine maintenance and minor repairs.</p>
-                                <div className="flex items-end gap-1">
-                                    <span className="text-slate-400 font-bold mb-1.5">$</span>
-                                    <Input className="text-2xl font-black h-12 w-24 p-2" type="number" defaultValue="85.00" />
-                                    <span className="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
-                                </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">Display Text</label>
+                                <Input
+                                    className="h-14 bg-black/50 border-white/10 rounded-2xl text-zinc-300 font-bold px-4 focus:border-orange-500/50 transition-all"
+                                    placeholder="e.g. Mon - Sat: 9:00 AM - 7:00 PM"
+                                    value={settings.working_hours}
+                                    onChange={(e) => setSettings({ ...settings, working_hours: e.target.value })}
+                                />
+                                <p className="text-[9px] text-zinc-600 font-bold uppercase mt-3 px-1">Visible on home page and contact section</p>
                             </div>
 
-                            {/* Diagnostic Rate */}
-                            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-2 text-blue-600">
-                                        <PieChart className="w-5 h-5" />
-                                    </div>
+                            <div className="pt-4 border-t border-white/5">
+                                <label className="block text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-2">
+                                    <Lock className="w-3 h-3" /> Master Admin Password
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type={showPin ? "text" : "password"}
+                                        className="h-14 bg-black/50 border-white/10 rounded-2xl text-zinc-300 font-bold px-4 pr-12 focus:border-orange-500/50 transition-all tracking-widest font-mono"
+                                        placeholder="Enter new master password..."
+                                        value={settings.admin_password}
+                                        onChange={(e) => setSettings({ ...settings, admin_password: e.target.value })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPin(!showPin)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                                    >
+                                        {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
-                                <h4 className="font-bold text-slate-900 dark:text-white">Diagnostic Rate</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Specialized troubleshooting rate for complex electrical and engine issues.</p>
-                                <div className="flex items-end gap-1">
-                                    <span className="text-slate-400 font-bold mb-1.5">$</span>
-                                    <Input className="text-2xl font-black h-12 w-24 p-2" type="number" defaultValue="120.00" />
-                                    <span className="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
-                                </div>
+                                <p className="text-[9px] text-zinc-600 font-bold uppercase mt-3 px-1">Used to secure the admin dashboard</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                {/* Right Column: Communication */}
+                <div className="space-y-8">
+                    <section className="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+                        <h3 className="flex items-center gap-3 text-lg font-black text-white uppercase tracking-tighter">
+                            <Globe className="text-orange-500 w-5 h-5" /> Connectivity
+                        </h3>
+
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-2">
+                                    <Phone className="w-3 h-3" /> Voice Contact
+                                </label>
+                                <Input
+                                    className="h-14 bg-black/50 border-white/10 rounded-2xl text-zinc-300 font-bold px-4 transition-all"
+                                    value={settings.contact_phone}
+                                    onChange={(e) => setSettings({ ...settings, contact_phone: e.target.value })}
+                                />
                             </div>
 
-                            {/* Fleet Rate */}
-                            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="rounded-lg bg-purple-50 dark:bg-purple-900/20 p-2 text-purple-600">
-                                        <Building2 className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <h4 className="font-bold text-slate-900 dark:text-white">Fleet Rate</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Discounted baseline rate reserved for long-term business account contracts.</p>
-                                <div className="flex items-end gap-1">
-                                    <span className="text-slate-400 font-bold mb-1.5">$</span>
-                                    <Input className="text-2xl font-black h-12 w-24 p-2" type="number" defaultValue="70.00" />
-                                    <span className="text-slate-400 font-bold mb-1.5 whitespace-nowrap">/ hr</span>
-                                </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-2">
+                                    <MessageCircle className="w-3 h-3 text-emerald-500" /> WhatsApp (Digits Only)
+                                </label>
+                                <Input
+                                    className="h-14 bg-black/50 border-white/10 rounded-2xl text-zinc-300 font-bold px-4 transition-all font-mono"
+                                    placeholder="e.g. 918727061407"
+                                    value={settings.contact_whatsapp}
+                                    onChange={(e) => setSettings({ ...settings, contact_whatsapp: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-2">
+                                    <Store className="w-3 h-3 text-violet-500" /> Business Email
+                                </label>
+                                <Input
+                                    className="h-14 bg-black/50 border-white/10 rounded-2xl text-zinc-300 font-bold px-4 transition-all"
+                                    value={settings.contact_email}
+                                    onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+                                />
                             </div>
                         </div>
                     </section>
 
-                    {/* Operating Hours & Regional Settings Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Operating Hours Grid */}
-                        <section className="col-span-1 lg:col-span-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm">
-                            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white mb-6">
-                                <Clock className="text-primary w-5 h-5" />
-                                Operating Hours
-                            </h3>
-                            <div className="space-y-3">
-                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => (
-                                    <div key={day} className="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all even:bg-slate-50 dark:even:bg-slate-900">
-                                        <span className="col-span-3 text-sm font-bold text-slate-700 dark:text-slate-300">{day}</span>
-                                        <div className="col-span-2">
-                                            <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">OPEN</span>
-                                        </div>
-                                        <div className="col-span-7 flex items-center justify-end gap-2">
-                                            <Input type="time" defaultValue="09:00" className="h-8 w-24 text-xs" />
-                                            <span className="text-slate-400 text-xs">—</span>
-                                            <Input type="time" defaultValue={day === 'Friday' ? "20:00" : "18:00"} className="h-8 w-24 text-xs" />
-                                        </div>
-                                    </div>
-                                ))}
-                                <div className="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all bg-slate-50 dark:bg-slate-900">
-                                    <span className="col-span-3 text-sm font-bold text-slate-700 dark:text-slate-300">Saturday</span>
-                                    <div className="col-span-2">
-                                        <span className="inline-flex items-center rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-[10px] font-bold text-orange-700 dark:text-orange-400">LTD HOURS</span>
-                                    </div>
-                                    <div className="col-span-7 flex items-center justify-end gap-2">
-                                        <Input type="time" defaultValue="10:00" className="h-8 w-24 text-xs" />
-                                        <span className="text-slate-400 text-xs">—</span>
-                                        <Input type="time" defaultValue="14:00" className="h-8 w-24 text-xs" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-12 items-center gap-4 p-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
-                                    <span className="col-span-3 text-sm font-bold text-slate-700 dark:text-slate-300">Sunday</span>
-                                    <div className="col-span-2">
-                                        <span className="inline-flex items-center rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400">CLOSED</span>
-                                    </div>
-                                    <div className="col-span-7 flex items-center justify-end gap-2">
-                                        <span className="text-xs text-slate-400 font-medium italic">Shop is not operational</span>
-                                    </div>
-                                </div>
+                    <div className="bg-orange-500/5 border border-orange-500/10 rounded-[2.5rem] p-8">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+                                <MapPin className="text-orange-500 w-5 h-5" />
                             </div>
-                        </section>
-
-                        {/* Regional Preferences */}
-                        <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-sm">
-                            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white mb-6">
-                                <Globe className="text-primary w-5 h-5" />
-                                Regional
-                            </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Currency</label>
-                                    <Select defaultValue="inr">
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Currency" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="usd">USD ($) - US Dollar</SelectItem>
-                                            <SelectItem value="inr">INR (₹) - Indian Rupee</SelectItem>
-                                            <SelectItem value="eur">EUR (€) - Euro</SelectItem>
-                                            <SelectItem value="gbp">GBP (£) - British Pound</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date Format</label>
-                                    <Select defaultValue="ddmm">
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Date Format" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="mmdd">MM/DD/YYYY</SelectItem>
-                                            <SelectItem value="ddmm">DD/MM/YYYY</SelectItem>
-                                            <SelectItem value="iso">YYYY-MM-DD</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Default Tax %</label>
-                                    <div className="relative">
-                                        <Input type="number" step="0.1" defaultValue="18.0" className="pr-10" />
-                                        <span className="absolute right-3 top-2 text-slate-400 text-sm font-bold">%</span>
-                                    </div>
-                                </div>
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    {/* Custom Checkbox mimicking the design */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-5 w-5 items-center justify-center rounded border border-primary bg-primary text-white">
-                                            <span className="text-[14px]">✓</span>
-                                        </div>
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Auto-calculate regional taxes</span>
-                                    </div>
-                                </div>
+                            <div>
+                                <h4 className="text-white font-black text-sm uppercase tracking-tight mb-2">Sync Intelligence</h4>
+                                <p className="text-xs text-zinc-500 leading-relaxed font-bold">
+                                    Updating these parameters will instantly refresh the Hero, Footer, and Contact components across the public-facing website. No rebuild required.
+                                </p>
                             </div>
-                        </section>
+                        </div>
                     </div>
                 </div>
             </div>

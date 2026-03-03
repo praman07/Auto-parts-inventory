@@ -6,6 +6,8 @@ import {
     BarChart3,
     Settings,
     Box,
+    Calendar,
+    ClipboardList,
 } from "lucide-react";
 
 export const navItems = [
@@ -26,7 +28,27 @@ export const navItems = [
         icon: Package,
     },
     {
-        title: "Stock Movements",
+        title: "Appointments",
+        href: "/dashboard/appointments",
+        icon: Calendar,
+    },
+    {
+        title: "Customers",
+        href: "/dashboard/customers",
+        icon: Users,
+    },
+    {
+        title: "Product Requests",
+        href: "/dashboard/orders/requests",
+        icon: ClipboardList,
+    },
+    {
+        title: "Sales History",
+        href: "/dashboard/orders",
+        icon: ShoppingCart,
+    },
+    {
+        title: "Stock",
         href: "/dashboard/stock",
         icon: Box,
     },

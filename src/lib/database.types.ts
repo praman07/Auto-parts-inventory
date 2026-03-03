@@ -306,6 +306,50 @@ export type Database = {
                     created_at?: string
                 }
             }
+            appointments: {
+                Row: {
+                    id: string
+                    user_id: string
+                    user_name: string
+                    user_email: string
+                    vehicle_type: string
+                    vehicle_model: string
+                    problem_type: string
+                    preferred_date: string
+                    preferred_time: string
+                    status: "pending" | "confirmed" | "completed" | "rejected"
+                    part_id: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    user_name: string
+                    user_email: string
+                    vehicle_type: string
+                    vehicle_model: string
+                    problem_type: string
+                    preferred_date: string
+                    preferred_time: string
+                    status?: "pending" | "confirmed" | "completed" | "rejected"
+                    part_id?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    user_name?: string
+                    user_email?: string
+                    vehicle_type?: string
+                    vehicle_model?: string
+                    problem_type?: string
+                    preferred_date?: string
+                    preferred_time?: string
+                    status?: "pending" | "confirmed" | "completed" | "rejected"
+                    part_id?: string | null
+                    created_at?: string
+                }
+            }
         }
         Views: {
             [_ in never]: never

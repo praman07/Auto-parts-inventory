@@ -17,6 +17,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+import { fetchWithRetry } from "@/lib/api-client"
 import { ProductSheet } from "./product-sheet"
 import { StockArrivalSheet } from "./stock-arrival-sheet"
 import { RestockSheet } from "./restock-sheet"
@@ -39,6 +41,7 @@ interface ProductRow {
     supplier_name: string
     is_universal: boolean
     compatibility: { brand: string, model: string, id: string }[]
+    image_url: string | null
 }
 
 export function InventoryContent() {
@@ -46,6 +49,7 @@ export function InventoryContent() {
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [dialogOpen, setDialogOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [activeFilter, setActiveFilter] = useState<string>("all")
     const [sheetOpen, setSheetOpen] = useState(false)
@@ -77,62 +81,57 @@ export function InventoryContent() {
     }, [searchParams])
 
     const fetchData = useCallback(async () => {
-        // Fetch categories
-        // const { data: cats } = await supabase.from("categories").select("id, name")
-        // const catMap: Record<string, string> = {}
-        // for (const c of cats || []) catMap[c.id] = c.name
-        // setCategories(cats?.map(c => ({ id: c.id, name: c.name })) || [])
+        try {
+            const response = await fetchWithRetry("/api/inventory/products");
 
-        // Fetch products
-        const { data: prods, error } = await supabase
-            .from("products")
-            .select(`
-                *,
-                categories(name),
-                subcategories(name),
-                suppliers(name),
-                product_bikes(
-                    bike_id,
-                    bikes(
-                        id,
-                        model_name,
-                        companies(name)
-                    )
-                )
-            `)
+            if (response.error) {
+                if (response.error.includes("fetch failed") || response.status === 502) {
+                    toast.error("Database Connection Failed. Please check if your Supabase project is paused in the dashboard.")
+                } else {
+                    toast.error(`Error fetching products: ${response.error}`)
+                }
+                setLoading(false)
+                return
+            }
 
-        if (error) {
-            console.error("Error fetching products:", error)
+            const prods = response.data || [];
+
+            const mapped: ProductRow[] = prods.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                part_number: p.part_number,
+                cost_price: Number(p.cost_price),
+                selling_price: Number(p.selling_price),
+                stock_quantity: Number(p.stock_quantity),
+                low_stock_threshold: Number(p.low_stock_threshold),
+                description: p.description,
+                category_id: p.category_id,
+                category_name: p.categories?.name || "Uncategorized",
+                subcategory_id: p.subcategory_id,
+                subcategory_name: p.subcategories?.name || "None",
+                supplier_id: p.supplier_id,
+                supplier_name: p.suppliers?.name || "None",
+                is_universal: !!p.is_universal,
+                compatibility: (p.product_bikes || []).map((pb: any) => ({
+                    id: pb.bikes?.id,
+                    model: pb.bikes?.model_name,
+                    brand: pb.bikes?.companies?.name,
+                })),
+                image_url: p.image_url,
+            })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+
+            setProducts(mapped)
+        } catch (error: any) {
+            console.error("Detailed Fetch Error:", error)
+            if (error.message.includes("fetch failed") || error.message.includes("502")) {
+                toast.error("Database Connection Failed. Please check if your Supabase project is paused in the dashboard.")
+            } else {
+                toast.error(`Error fetching products: ${error.message}`)
+            }
+        } finally {
             setLoading(false)
-            return
         }
-
-        const mapped: ProductRow[] = (prods || []).map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            part_number: p.part_number,
-            cost_price: Number(p.cost_price),
-            selling_price: Number(p.selling_price),
-            stock_quantity: Number(p.stock_quantity),
-            low_stock_threshold: Number(p.low_stock_threshold),
-            description: p.description,
-            category_id: p.category_id,
-            category_name: p.categories?.name || "Uncategorized",
-            subcategory_id: p.subcategory_id,
-            subcategory_name: p.subcategories?.name || "None",
-            supplier_id: p.supplier_id,
-            supplier_name: p.suppliers?.name || "None",
-            is_universal: !!p.is_universal,
-            compatibility: (p.product_bikes || []).map((pb: any) => ({
-                id: pb.bikes?.id,
-                model: pb.bikes?.model_name,
-                brand: pb.bikes?.companies?.name,
-            })),
-        })).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-
-        setProducts(mapped)
-        setLoading(false)
     }, [])
 
     useEffect(() => {
@@ -369,15 +368,15 @@ export function InventoryContent() {
                         </div>
                     ) : (
                         <table className="w-full text-left border-separate border-spacing-0">
-                            <thead className="sticky top-0 z-10 bg-zinc-900">
-                                <tr className="text-[9px] font-bold uppercase tracking-wider text-white/40">
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">SKU</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Part Name</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Category</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Qty</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Cost</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Markup</th>
-                                    <th className="border-b border-white/[0.06] py-1.5 px-2.5">Retail</th>
+                            <thead className="sticky top-0 z-10 bg-zinc-900 shadow-sm shadow-black">
+                                <tr className="text-[10px] font-black uppercase tracking-[0.15em] text-white/30">
+                                    <th className="border-b border-white/[0.08] py-4 px-4">SKU / Code</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4">Product Identity</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4 text-center">Shelf Category</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4">In Stock</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4 text-right">Unit Cost</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4 text-center">Gain</th>
+                                    <th className="border-b border-white/[0.08] py-4 px-4 text-right">Retail Rate</th>
                                 </tr>
                             </thead>
                             <tbody className="text-[11px]">
@@ -388,41 +387,52 @@ export function InventoryContent() {
                                     return (
                                         <tr
                                             key={p.id}
-                                            onClick={() => setSelectedId(p.id)}
-                                            className={`group cursor-pointer transition-colors ${isSelected
-                                                ? "bg-violet-500/10 border-l-4 border-l-violet-500"
+                                            onClick={() => {
+                                                setSelectedId(p.id)
+                                                setActiveDetailTab("specs")
+                                                setDialogOpen(true)
+                                            }}
+                                            className={`group cursor-pointer transition-all ${isSelected
+                                                ? "bg-white/[0.05] shadow-[inset_4px_0_0_0_#f97316]"
                                                 : "hover:bg-white/[0.02]"
-                                                }`}
+                                                } border-b border-white/[0.04]`}
                                         >
-                                            <td className={`font-mono font-medium py-1.5 px-2.5 ${isSelected ? "text-violet-400" : "text-white/50"}`}>
+                                            <td className={`font-mono text-xs font-bold py-5 px-4 ${isSelected ? "text-orange-500" : "text-white/30"}`}>
                                                 {p.sku || "—"}
                                             </td>
-                                            <td className="font-medium text-white/90 py-1.5 px-2.5">{p.name}</td>
-                                            <td className="py-1.5 px-2.5">
-                                                <span className="inline-flex rounded bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-bold text-white/50">
+                                            <td className="py-5 px-4">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="font-black text-[14px] text-white tracking-tight">{p.name}</span>
+                                                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{p.part_number || "NO PART NUMBER"}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-5 px-4 text-center">
+                                                <span className="inline-flex rounded-lg bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 text-[10px] font-black uppercase text-white/40 tracking-wider">
                                                     {p.category_name}
                                                 </span>
                                             </td>
-                                            <td className="py-1.5 px-2.5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`font-bold tabular-nums ${isOut ? "text-red-400" : isLow ? "text-amber-400" : "text-emerald-400"}`}>
-                                                        {p.stock_quantity}
+                                            <td className="py-5 px-4">
+                                                <div className="flex items-center gap-2.5">
+                                                    <span className={`font-mono text-[13px] font-bold tabular-nums ${isOut ? "text-red-400" : isLow ? "text-amber-400" : "text-emerald-400"}`}>
+                                                        {p.stock_quantity.toString().padStart(2, '0')}
                                                     </span>
                                                     {isLow && (
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[8px] font-bold uppercase tracking-tight">
-                                                            To Order
+                                                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[9px] font-black uppercase tracking-tight border border-amber-500/20">
+                                                            Restock
                                                         </span>
                                                     )}
                                                     {isOut && (
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[8px] font-bold uppercase tracking-tight">
-                                                            Out
+                                                        <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-tight border border-red-500/20">
+                                                            Depleted
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="text-white/50 py-1.5 px-2.5 tabular-nums">₹{p.cost_price.toLocaleString("en-IN")}</td>
-                                            <td className="text-white/50 py-1.5 px-2.5">{markup(p)}</td>
-                                            <td className="font-medium text-white/70 py-1.5 px-2.5 tabular-nums">₹{p.selling_price.toLocaleString("en-IN")}</td>
+                                            <td className="text-white/40 py-5 px-4 tabular-nums text-right text-[13px] font-medium">₹{p.cost_price.toLocaleString("en-IN")}</td>
+                                            <td className="text-white/30 py-5 px-4 text-center">
+                                                <span className="text-[10px] font-black bg-white/[0.04] px-2 py-1 rounded-lg border border-white/[0.08]">{markup(p)}</span>
+                                            </td>
+                                            <td className="font-black text-white py-5 px-4 tabular-nums text-right text-[15px]">₹{p.selling_price.toLocaleString("en-IN")}</td>
                                         </tr>
                                     )
                                 })}
@@ -431,8 +441,8 @@ export function InventoryContent() {
                     )}
                 </div>
 
-                {/* Side Detail Panel */}
-                <div className="w-80 border-l border-white/[0.06] bg-white/[0.01] backdrop-blur-md flex flex-col hidden xl:flex">
+                {/* Side Detail Panel — only on very wide screens */}
+                <div className="w-96 border-l border-white/[0.08] bg-zinc-900/50 backdrop-blur-3xl flex-col hidden 2xl:flex">
                     {selectedProduct ? (
                         <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300">
                             {/* Product Header (Slimmer) */}
@@ -609,10 +619,171 @@ export function InventoryContent() {
                 </div>
             </div>
 
+            {/* ── Product Detail Dialog (all screen sizes) ── */}
+            {dialogOpen && selectedProduct && (
+                <div
+                    className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                    onClick={(e) => { if (e.target === e.currentTarget) setDialogOpen(false) }}
+                >
+                    <div className="w-full max-w-lg bg-zinc-900 border border-white/[0.1] rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 fade-in duration-200">
+                        {/* Header */}
+                        <div className="px-6 py-5 border-b border-white/[0.06] flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                                <span className="inline-block px-2 py-0.5 rounded-md bg-white/[0.06] text-[9px] font-bold text-white/40 border border-white/[0.08] uppercase mb-2">
+                                    {selectedProduct.category_name}
+                                </span>
+                                <h2 className="text-base font-bold text-white leading-tight">{selectedProduct.name}</h2>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-[10px] font-mono text-white/25">SKU: {selectedProduct.sku || "N/A"}</p>
+                                    <span className="text-white/10 text-[8px]">•</span>
+                                    <p className="text-[10px] font-mono text-white/50 font-bold">P/N: {selectedProduct.part_number || "N/A"}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setDialogOpen(false)}
+                                className="w-8 h-8 rounded-xl bg-white/[0.04] text-white/30 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-colors shrink-0"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-white/[0.06] bg-white/[0.02]">
+                            {(["specs", "bikes", "prices"] as const).map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveDetailTab(tab)}
+                                    className={`flex-1 py-3 text-[11px] font-bold capitalize transition-all border-b-2 ${activeDetailTab === tab
+                                        ? "text-white border-orange-500"
+                                        : "text-white/20 border-transparent hover:text-white/40"
+                                        }`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {activeDetailTab === "specs" && (
+                                <div className="space-y-4 animate-in fade-in duration-200">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                                            <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Stock</p>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={`text-lg font-bold tabular-nums ${selectedProduct.stock_quantity === 0 ? "text-red-400"
+                                                    : selectedProduct.stock_quantity <= selectedProduct.low_stock_threshold ? "text-amber-400"
+                                                        : "text-emerald-400"
+                                                    }`}>
+                                                    {selectedProduct.stock_quantity}
+                                                </span>
+                                                <span className="text-[10px] text-white/20 font-medium">units</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                                            <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Restock At</p>
+                                            <span className="text-lg font-bold tabular-nums text-white/50">{selectedProduct.low_stock_threshold}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                                        <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Supplier</p>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-white/70">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+                                            {selectedProduct.supplier_name}
+                                        </div>
+                                    </div>
+                                    {selectedProduct.description && (
+                                        <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-3">
+                                            <p className="text-[9px] font-bold text-white/20 uppercase mb-2">Description</p>
+                                            <p className="text-[11px] text-white/50 leading-relaxed italic">"{selectedProduct.description}"</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {activeDetailTab === "bikes" && (
+                                <div className="space-y-4 animate-in fade-in duration-200">
+                                    {selectedProduct.is_universal ? (
+                                        <div className="flex flex-col items-center text-center py-8 gap-3">
+                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                                <Package className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-white/80">Universal Part</p>
+                                                <p className="text-[10px] text-white/30 mt-1">Fits all vehicle models.</p>
+                                            </div>
+                                        </div>
+                                    ) : selectedProduct.compatibility.length > 0 ? (
+                                        Object.entries(
+                                            selectedProduct.compatibility.reduce((acc: any, curr) => {
+                                                if (!acc[curr.brand]) acc[curr.brand] = []
+                                                acc[curr.brand].push(curr.model)
+                                                return acc
+                                            }, {})
+                                        ).map(([brand, models]: [string, any]) => (
+                                            <div key={brand} className="space-y-2">
+                                                <h4 className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">{brand}</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {models.map((m: string) => (
+                                                        <span key={m} className="px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-white/60">{m}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-[11px] text-white/20 italic text-center py-8">No compatibility mapping found.</p>
+                                    )}
+                                </div>
+                            )}
+                            {activeDetailTab === "prices" && (
+                                <div className="space-y-4 animate-in fade-in duration-200">
+                                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-white/30">Cost Price</span>
+                                            <span className="text-sm font-bold text-white/60 tabular-nums">₹{selectedProduct.cost_price.toLocaleString("en-IN")}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-4 border-y border-white/[0.04]">
+                                            <span className="text-xs text-white/30">Selling Price</span>
+                                            <span className="text-xl font-bold text-emerald-400 tabular-nums">₹{selectedProduct.selling_price.toLocaleString("en-IN")}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-white/30">Profit Margin</span>
+                                            <div className="text-right">
+                                                <span className="text-sm font-bold text-emerald-400/60 block">₹{(selectedProduct.selling_price - selectedProduct.cost_price).toLocaleString("en-IN")}</span>
+                                                <span className="text-[10px] font-bold text-white/20">{markup(selectedProduct)} markup</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="p-4 border-t border-white/[0.06] bg-white/[0.02] flex gap-2">
+                            <button
+                                onClick={() => { setDialogOpen(false); setSheetOpen(true) }}
+                                className="flex-1 h-10 bg-white text-zinc-950 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
+                            >
+                                Edit Part
+                            </button>
+                            <button
+                                onClick={() => setDialogOpen(false)}
+                                className="w-10 h-10 bg-white/[0.04] border border-white/[0.08] text-white/40 hover:text-white rounded-xl flex items-center justify-center transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ProductSheet
                 open={sheetOpen}
-                onOpenChange={setSheetOpen}
+                onOpenChange={(val) => {
+                    setSheetOpen(val)
+                    if (!val) setSelectedId(null)
+                }}
                 onSaved={fetchData}
+                initialData={selectedProduct}
             />
 
             <StockArrivalSheet

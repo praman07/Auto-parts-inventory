@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils"
 type Props = {
     data: { date: string; count: number }[]
     year?: number
+    onDayClick?: (dateStr: string) => void
 }
 
-export function StreakHeatmap({ data, year = new Date().getFullYear() }: Props) {
+export function StreakHeatmap({ data, year = new Date().getFullYear(), onDayClick }: Props) {
     // Generate all days for the year
     const days = useMemo(() => {
         const days = []
@@ -23,17 +24,9 @@ export function StreakHeatmap({ data, year = new Date().getFullYear() }: Props) 
             const dateStr = d.toISOString().split("T")[0] // YYYY-MM-DD
             const count = dataMap.get(dateStr) || 0
 
-            // Normalize count for color intensity (0-4)
-            // 0 = no sales
-            // 1 = 1-2 sales
-            // 2 = 3-5 sales
-            // 3 = 6-9 sales
-            // 4 = 10+ sales
+            // Binary count for color: 0 = off, 1 = on
             let level = 0
             if (count > 0) level = 1
-            if (count > 2) level = 2
-            if (count > 5) level = 3
-            if (count > 9) level = 4
 
             days.push({
                 date: new Date(d),
@@ -127,19 +120,24 @@ export function StreakHeatmap({ data, year = new Date().getFullYear() }: Props) 
                                             <Tooltip delayDuration={0}>
                                                 <TooltipTrigger asChild>
                                                     <div
+                                                        onClick={() => {
+                                                            if (day.level > 0 && onDayClick) {
+                                                                onDayClick(day.dateStr)
+                                                            }
+                                                        }}
                                                         className={cn(
-                                                            "w-[10px] h-[10px] rounded-[2px] transition-colors hover:border hover:border-white/50 cursor-crosshair",
-                                                            day.level === 0 && "bg-white/5",
-                                                            day.level === 1 && "bg-emerald-900/40",
-                                                            day.level === 2 && "bg-emerald-700/60",
-                                                            day.level === 3 && "bg-emerald-500/80",
-                                                            day.level === 4 && "bg-emerald-400 font-bold",
+                                                            "w-[10px] h-[10px] rounded-[2px] transition-all duration-300",
+                                                            day.level === 0 ? "bg-white/5" : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] cursor-pointer hover:scale-125 hover:z-10 relative"
                                                         )}
                                                     />
                                                 </TooltipTrigger>
                                                 <TooltipContent side="top" className="text-[10px] bg-zinc-950 border-white/10 text-white px-2 py-1 shadow-2xl">
                                                     <p>
-                                                        <span className="font-bold text-emerald-400">{day.count} sales</span> on {day.date.toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                                                        {day.count > 0 ? (
+                                                            <><span className="font-bold text-emerald-400">{day.count} sales</span> on {day.date.toLocaleDateString("en-IN", { month: "short", day: "numeric" })} <br /><span className="text-zinc-500">Click to view/edit</span></>
+                                                        ) : (
+                                                            <>No sales on {day.date.toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</>
+                                                        )}
                                                     </p>
                                                 </TooltipContent>
                                             </Tooltip>
@@ -153,15 +151,14 @@ export function StreakHeatmap({ data, year = new Date().getFullYear() }: Props) 
 
                 {/* Legend */}
                 <div className="flex items-center justify-end gap-2 mt-2 text-[9px] text-white/25 pr-2">
-                    <span>Less</span>
-                    <div className="flex gap-[3px]">
+                    <div className="flex items-center gap-1.5">
                         <div className="w-[10px] h-[10px] rounded-[2px] bg-white/5" />
-                        <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-900/40" />
-                        <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-700/60" />
-                        <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-500/80" />
-                        <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-400" />
+                        <span>No Sales</span>
                     </div>
-                    <span>More</span>
+                    <div className="flex items-center gap-1.5 ml-3">
+                        <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                        <span className="text-emerald-500/70 font-bold">Active Sales Day</span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -161,9 +161,14 @@ export default function SalePage() {
             }
 
             // 2. Create sale record
+            const { data: { user } } = await supabase.auth.getUser()
             const { data: sale, error: saleError } = await supabase
                 .from("sales")
-                .insert({ shop_id: shopId, total_amount: total })
+                .insert({
+                    shop_id: shopId,
+                    user_id: user?.id,
+                    total_amount: total
+                })
                 .select("id")
                 .single()
 

@@ -13,27 +13,14 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
-  const [isHovered, setIsHovered] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => setIsHovered(false), 200);
-  };
-
-  const isExpanded = isHovered;
+  const isExpanded = true; // Keep expanded all the time
 
   return (
     <aside
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className={cn(
         "relative flex flex-col border-r border-white/[0.06] bg-zinc-950 text-white transition-all duration-300 ease-in-out z-30",
-        isExpanded ? "w-52" : "w-14",
+        "w-52",
         className
       )}
     >
@@ -62,7 +49,7 @@ export function Sidebar({ className }: SidebarProps) {
                   className={cn(
                     "flex items-center rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors whitespace-nowrap overflow-hidden",
                     isActive
-                      ? "bg-white/[0.08] text-white"
+                      ? "bg-orange-500/10 text-orange-500"
                       : "text-white/35 hover:text-white/60 hover:bg-white/[0.04]",
                     !isExpanded && "justify-center"
                   )}
