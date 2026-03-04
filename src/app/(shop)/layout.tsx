@@ -1,6 +1,7 @@
 import { UserHeader } from "@/components/layouts/user-header";
 import { Footer } from "@/components/layouts/footer";
 import { UserSecurity } from "@/components/UserSecurity";
+import { CartBanner } from "@/components/layouts/cart-banner";
 
 export default function ShopLayout({
     children,
@@ -15,6 +16,7 @@ export default function ShopLayout({
                     {children}
                 </main>
                 <Footer />
+                <CartBanner />
             </div>
         </UserSecurity>
     );

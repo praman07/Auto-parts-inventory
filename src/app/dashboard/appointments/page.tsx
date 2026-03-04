@@ -401,9 +401,9 @@ export default function AdminAppointmentsPage() {
                                 {appt.admin_notes && (
                                     <div className="mt-8 pt-4 border-t border-white/5 bg-black/10 -mx-8 -mb-8 px-8 py-4">
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[.2em] mb-1 flex items-center gap-2">
-                                            <MessageCircle className="w-3.5 h-3.5" /> Technician Feedback
+                                            <MessageCircle className="w-3.5 h-3.5" /> Booking Notes & Parts
                                         </p>
-                                        <p className="text-[11px] text-white/50 italic">"{appt.admin_notes}"</p>
+                                        <p className="text-[11px] text-white/50 whitespace-pre-wrap leading-relaxed">{appt.admin_notes}</p>
                                     </div>
                                 )}
                             </motion.div>

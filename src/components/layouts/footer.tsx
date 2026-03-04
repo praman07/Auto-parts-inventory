@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { Phone, MapPin, MessageCircle } from "lucide-react";
 
-export function Footer() {
+export function Footer({ className }: { className?: string }) {
     const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
@@ -19,7 +19,7 @@ export function Footer() {
     const WHATSAPP_LINK = settings ? `https://wa.me/${settings.contact_whatsapp}` : "https://wa.me/918727061407";
 
     return (
-        <footer className="w-full py-10 sm:py-14 bg-zinc-900 text-white border-t border-zinc-800">
+        <footer className={`w-full py-10 sm:py-14 text-white border-t ${className || "bg-zinc-900 border-zinc-800"}`}>
             <div className="container px-4 md:px-6 mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
 

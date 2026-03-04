@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
 import { useState, useRef } from "react";
 import { navItems } from "@/components/layouts/nav-config";
+import Image from "next/image";
 
 interface SidebarProps {
   className?: string;
@@ -25,16 +26,16 @@ export function Sidebar({ className }: SidebarProps) {
       )}
     >
       {/* Logo */}
-      <div className={cn("flex h-11 items-center border-b border-white/[0.06] px-3 overflow-hidden", isExpanded ? "justify-start" : "justify-center")}>
+      <div className={cn("flex h-11 items-center border-b border-white/[0.06] px-3 overflow-hidden", isExpanded ? "justify-start gap-2" : "justify-center")}>
+        <div className="w-6 h-6 rounded flex items-center justify-center shrink-0">
+          <Image src="/logo.png" alt="Logo" width={24} height={24} className="w-full h-full object-cover" />
+        </div>
         <span className={cn(
-          "text-xs font-bold tracking-widest text-white/80 uppercase whitespace-nowrap transition-opacity duration-200",
-          isExpanded ? "opacity-100" : "opacity-0 w-0"
+          "text-xs font-black tracking-widest text-white uppercase whitespace-nowrap transition-opacity duration-200",
+          isExpanded ? "opacity-100" : "opacity-0 w-0 hidden"
         )}>
           Bhogal
         </span>
-        {!isExpanded && (
-          <span className="text-xs font-bold text-white/50">B</span>
-        )}
       </div>
 
       {/* Nav */}

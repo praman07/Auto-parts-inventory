@@ -2,9 +2,10 @@
 "use client";
 
 import { useCart } from "@/context/cart-context";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Sparkles, ChevronLeft } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Sparkles, ChevronLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/animated-button";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartPage() {
@@ -44,7 +45,7 @@ export default function CartPage() {
                         <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-zinc-900 tracking-tighter italic">Selected <span className="text-orange-500">Parts.</span></h1>
                     </div>
                     <div className="flex flex-col md:text-right gap-1">
-                        <span className="text-xl font-black text-zinc-900 italic">Approx. {totalItems} Items</span>
+                        <span className="text-xl font-black text-zinc-900 italic">{totalItems} {totalItems === 1 ? 'Item' : 'Items'}</span>
                     </div>
                 </div>
 
@@ -61,9 +62,12 @@ export default function CartPage() {
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     className="bg-white rounded-[2rem] p-4 sm:p-6 border-2 border-zinc-100 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 group hover:border-orange-500/20 transition-all shadow-sm"
                                 >
-                                    <div className="w-32 h-32 bg-zinc-50 rounded-2xl flex items-center justify-center shrink-0 border border-zinc-100 p-4">
-                                        {/* Simplified Image Placeholder */}
-                                        <div className="text-5xl opacity-40 group-hover:scale-110 transition-transform">⚙️</div>
+                                    <div className="w-28 h-28 sm:w-32 sm:h-32 bg-zinc-50 rounded-2xl flex items-center justify-center shrink-0 border border-zinc-100 overflow-hidden">
+                                        {item.image ? (
+                                            <Image src={item.image} alt={item.name} width={128} height={128} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                        ) : (
+                                            <Package className="w-10 h-10 text-zinc-300" />
+                                        )}
                                     </div>
 
                                     <div className="flex-1 space-y-2 text-center sm:text-left">

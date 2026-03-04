@@ -1,5 +1,5 @@
 
-import { Home, ShoppingBag, Wrench, Info, Phone, Truck } from "lucide-react";
+import { Home, ShoppingBag, Wrench, Info, Phone, CalendarCheck } from "lucide-react";
 
 export const userNavItems = [
     {
@@ -16,6 +16,11 @@ export const userNavItems = [
         title: "Services",
         href: "/book",
         icon: Wrench,
+    },
+    {
+        title: "Appointments",
+        href: "/appointments",
+        icon: CalendarCheck,
     },
     {
         title: "About",

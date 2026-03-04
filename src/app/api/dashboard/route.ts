@@ -162,14 +162,21 @@ export async function GET() {
             .gte("created_at", thirtyDaysAgo)
 
         const dailyMap: Record<string, number> = {}
+        // Generate last 30 calendar days in UTC
+        const msPerDay = 24 * 60 * 60 * 1000
+        const nowMs = Date.now()
+
         for (let i = 29; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
+            const d = new Date(nowMs - (i * msPerDay))
             const key = d.toISOString().slice(0, 10)
             dailyMap[key] = 0
         }
+
         for (const s of last30Sales || []) {
             const key = s.created_at.slice(0, 10)
-            if (dailyMap[key] !== undefined) dailyMap[key] += Number(s.total_amount)
+            if (dailyMap[key] !== undefined) {
+                dailyMap[key] += Number(s.total_amount)
+            }
         }
         const dailySales = Object.values(dailyMap)
 

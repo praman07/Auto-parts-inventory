@@ -66,7 +66,7 @@ export default function CheckoutPage() {
     const [showCalendar, setShowCalendar] = useState(false);
     const [formData, setFormData] = useState({
         vehicleModel: "",
-        problemType: "General Service",
+        problemType: "Part Installation",
         preferredDate: "",
         preferredTime: "morning",
         notes: "",
@@ -97,56 +97,48 @@ export default function CheckoutPage() {
         setProcessing(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("User not found");
+            if (!user) throw new Error("Please sign in to book");
 
-            // Get shop_id dynamically
             const { data: shop } = await supabase.from('shops').select('id').limit(1).single();
-            if (!shop) throw new Error("Shop not found");
+            if (!shop) throw new Error("Shop not configured");
 
-            // 1. Create Sale Record
-            const { data: sale, error: saleError } = await supabase
-                .from('sales')
-                .insert({
+            const customerName = user.user_metadata?.full_name || user.email || "Customer";
+            const customerPhone = user.user_metadata?.phone || user.phone || "";
+
+            // Build parts note
+            const partsNote = items.map(i =>
+                `• ${i.name} x${i.quantity} — ₹${(i.price * i.quantity).toLocaleString('en-IN')}`
+            ).join('\n');
+            const fullNotes = [formData.notes, partsNote ? `Selected Parts:\n${partsNote}` : ''].filter(Boolean).join('\n\n');
+
+            const res = await fetch('/api/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     shop_id: shop.id,
                     user_id: user.id,
                     total_amount: totalPrice,
-                })
-                .select()
-                .single();
+                    items: items.map(i => ({
+                        product_id: i.id,
+                        quantity: i.quantity,
+                        unit_price: i.price,
+                    })),
+                    appointment: {
+                        user_id: user.id,
+                        user_email: user.email,
+                        user_name: customerName,
+                        user_phone: customerPhone,
+                        vehicle_model: formData.vehicleModel,
+                        problem_type: formData.problemType,
+                        preferred_date: formData.preferredDate,
+                        preferred_time: formData.preferredTime,
+                        admin_notes: fullNotes.trim() || null,
+                    },
+                }),
+            });
 
-            if (saleError) throw saleError;
-
-            // 2. Create Sale Items
-            if (sale) {
-                const saleItems = items.map(item => ({
-                    sale_id: sale.id,
-                    product_id: item.id,
-                    quantity: item.quantity,
-                    unit_price: item.price,
-                    subtotal: item.price * item.quantity
-                }));
-
-                const { error: itemsError } = await supabase.from('sale_items').insert(saleItems);
-                if (itemsError) throw itemsError;
-
-                // 3. Create Appointment linked to Sale
-                const customerName = user.user_metadata?.full_name || user.email || "Customer";
-                const customerPhone = user.user_metadata?.phone || user.phone || "";
-                const { error: apptError } = await supabase.from('appointments').insert({
-                    user_id: user.id,
-                    user_email: user.email,
-                    user_name: customerName,
-                    user_phone: customerPhone,
-                    vehicle_model: formData.vehicleModel,
-                    problem_type: formData.problemType,
-                    preferred_date: formData.preferredDate,
-                    preferred_time: formData.preferredTime,
-                    admin_notes: formData.notes,
-                    sale_id: sale.id, // Linked!
-                    status: 'pending'
-                });
-                if (apptError) throw apptError;
-            }
+            const result = await res.json();
+            if (!res.ok || result.error) throw new Error(result.error || 'Booking failed');
 
             toast.success("Booking confirmed successfully!");
             clearCart();
@@ -170,7 +162,7 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-secondary/20 py-12">
+        <div className="min-h-screen bg-secondary/20 pt-24 pb-16">
             <div className="container mx-auto px-4 md:px-6">
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tighter italic mb-8">Booking <span className="text-orange-600">Details.</span></h1>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

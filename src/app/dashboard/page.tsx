@@ -19,6 +19,7 @@ import {
     Layers,
     Truck,
 } from "lucide-react"
+import { motion } from "framer-motion"
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 interface DashboardData {
@@ -107,36 +108,56 @@ function SalesTrendChart({ data, total }: { data: number[]; total: number }) {
     const max = Math.max(...data, 1)
 
     return (
-        <div className="rounded-2xl bg-gradient-to-br from-zinc-800/80 to-zinc-900/90 border border-white/[0.06] px-5 py-4 shadow-lg shadow-black/20">
-            <div className="flex items-center justify-between mb-5">
+        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] px-6 py-6 shadow-2xl relative overflow-hidden group">
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/20 rounded-full blur-[100px] pointer-events-none" />
+
+            <div className="flex items-center justify-between mb-8 relative z-10">
                 <div>
-                    <h3 className="text-xs font-semibold text-white/70">
-                        30-Day Sales Trend
+                    <h3 className="text-sm font-bold text-white tracking-tight">
+                        Revenue Velocity
                     </h3>
-                    <p className="text-[10px] text-white/30 mt-0.5">
-                        Daily revenue
+                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-[0.1em] mt-1">
+                        Last 30 days performance
                     </p>
                 </div>
                 <div className="text-right">
-                    <div className="text-sm font-bold text-white">
+                    <div className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
                         ₹{total.toLocaleString("en-IN")}
                     </div>
                 </div>
             </div>
-            <div className="flex items-end gap-[2px] h-16">
+
+            <div className="flex items-end gap-1.5 h-24 relative z-10">
                 {data.map((v, i) => (
-                    <div
-                        key={i}
-                        className="flex-1 rounded-t-sm bg-gradient-to-t from-violet-500/30 to-violet-400/10 hover:from-violet-500/50 hover:to-violet-400/20 transition-colors"
-                        style={{ height: `${(v / max) * 100}%` }}
-                    />
+                    <div key={i} className="flex-1 group/bar relative">
+                        <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: v > 0 ? `${Math.max((v / max) * 100, 8)}%` : "6%" }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 200,
+                                damping: 18,
+                                delay: i * 0.005
+                            }}
+                            className={`w-full rounded-t-[4px] transition-all relative ${v > 0
+                                ? "bg-gradient-to-t from-violet-500 via-fuchsia-400 to-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                                : "bg-white/5 border-t border-x border-white/10 opacity-40 shadow-none"
+                                }`}
+                        />
+                        {/* Tooltip on hover */}
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-zinc-950/95 backdrop-blur-xl border border-white/20 px-2 py-2 rounded-xl text-[10px] font-black text-white opacity-0 group-hover/bar:opacity-100 transition-all scale-75 group-hover:scale-100 whitespace-nowrap z-50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                            <span className="text-white/40 mr-1.5">Day {i + 1}:</span>
+                            ₹{v.toLocaleString()}
+                        </div>
+                    </div>
                 ))}
             </div>
-            <div className="flex justify-between mt-2 text-[9px] text-white/20 font-medium">
-                <span>1</span>
-                <span>10</span>
-                <span>20</span>
-                <span>30</span>
+
+            <div className="flex justify-between mt-4 px-1 text-[9px] text-white/20 font-black uppercase tracking-widest">
+                <span>Start</span>
+                <span>Mid Period</span>
+                <span>Current</span>
             </div>
         </div>
     )
@@ -163,18 +184,26 @@ function RevenueDetails({ data }: { data: DashboardData }) {
             </div>
 
             <div>
-                <h4 className="text-[11px] font-bold uppercase tracking-widest text-emerald-400/50 mb-4">Hourly Performance</h4>
-                <div className="flex items-end gap-1 h-32 bg-white/[0.02] rounded-xl p-4 border border-white/[0.04]">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-6 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Intraday Dynamic Volume
+                </h4>
+                <div className="flex items-end gap-1.5 h-32 bg-white/[0.01] rounded-2xl p-6 border border-white/[0.03] relative overflow-hidden">
+                    {/* Inner Shadow Bevel */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
                     {data.hourlySales.map((h, i) => {
                         const max = Math.max(...data.hourlySales.map(hs => hs.total), 1)
                         return (
-                            <div key={i} className="flex-1 group relative">
-                                <div
-                                    className="w-full bg-emerald-500/20 hover:bg-emerald-500/40 rounded-t-sm transition-all"
-                                    style={{ height: `${(h.total / max) * 100}%` }}
+                            <div key={i} className="flex-1 group relative h-full flex items-end">
+                                <motion.div
+                                    initial={{ height: 0 }}
+                                    animate={{ height: h.total > 0 ? `${Math.max((h.total / max) * 100, 6)}%` : "0%" }}
+                                    transition={{ type: "spring", stiffness: 150, damping: 15 }}
+                                    className="w-full bg-gradient-to-t from-emerald-500 via-cyan-400 to-white rounded-t-sm transition-all shadow-[0_0_15px_rgba(52,211,153,0.3)]"
                                 />
-                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-white/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {h.total > 0 ? `₹${(h.total / 1000).toFixed(1)}k` : ""}
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-black text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-950 px-2 py-0.5 rounded border border-emerald-500/20 shadow-xl whitespace-nowrap z-50">
+                                    {h.total > 0 ? `₹${h.total.toLocaleString()}` : ""}
                                 </div>
                             </div>
                         )

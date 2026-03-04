@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bhogal Auto | Premium Spares",
-  description: "Elite quality motorcycle and auto parts inventory system.",
+  title: "Bhogal Auto Service",
+  description: "Bhogal Auto Service Workshop & Spares",
 };
 
 export default function RootLayout({
@@ -34,7 +34,7 @@ export default function RootLayout({
           {children}
         </Providers>
         <Toaster
-          position="bottom-right"
+          position="top-center"
           richColors
           theme="dark"
           toastOptions={{

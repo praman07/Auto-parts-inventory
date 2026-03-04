@@ -34,6 +34,7 @@ export default function SettingsPage() {
         contact_email: "",
         about_text: "",
         admin_password: "",
+        hero_images: "",
     })
     const [showPin, setShowPin] = useState(false)
 
@@ -57,6 +58,7 @@ export default function SettingsPage() {
                     contact_email: s.contact_email || "",
                     about_text: s.about_text || "",
                     admin_password: s.admin_password || "",
+                    hero_images: s.hero_images || "",
                 })
             }
         } catch (err: any) {
@@ -80,6 +82,7 @@ export default function SettingsPage() {
                     contact_email: settings.contact_email,
                     about_text: settings.about_text,
                     admin_password: settings.admin_password,
+                    hero_images: settings.hero_images,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", settings.id)
@@ -152,6 +155,68 @@ export default function SettingsPage() {
                                     value={settings.address}
                                     onChange={(e) => setSettings({ ...settings, address: e.target.value })}
                                 />
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between mb-2 px-1">
+                                    <label className="block text-[10px] font-black text-orange-400 uppercase tracking-widest">Hero Background Images (CSV)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            id="hero-upload"
+                                            className="hidden"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={async (e) => {
+                                                const files = e.target.files
+                                                if (!files || files.length === 0) return
+
+                                                toast.loading("Uploading images...")
+                                                const newUrls = [...settings.hero_images.split(",").map(s => s.trim()).filter(Boolean)]
+
+                                                try {
+                                                    for (const file of Array.from(files)) {
+                                                        const fileExt = file.name.split('.').pop()
+                                                        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+                                                        const filePath = `hero/${fileName}`
+
+                                                        const { error: uploadError } = await supabase.storage
+                                                            .from('shop_assets')
+                                                            .upload(filePath, file)
+
+                                                        if (uploadError) throw uploadError
+
+                                                        const { data: { publicUrl } } = supabase.storage
+                                                            .from('shop_assets')
+                                                            .getPublicUrl(filePath)
+
+                                                        newUrls.push(publicUrl)
+                                                    }
+
+                                                    setSettings({ ...settings, hero_images: newUrls.join(", ") })
+                                                    toast.dismiss()
+                                                    toast.success("Images uploaded and added to list")
+                                                } catch (error: any) {
+                                                    toast.dismiss()
+                                                    toast.error("Upload failed: " + error.message)
+                                                }
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor="hero-upload"
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-lg text-[9px] font-black text-orange-400 cursor-pointer hover:bg-orange-500/20 transition-all uppercase tracking-widest"
+                                        >
+                                            <CloudUpload className="w-3 h-3" /> Upload Local
+                                        </label>
+                                    </div>
+                                </div>
+                                <Textarea
+                                    className="bg-black/50 border-white/10 rounded-2xl min-h-[100px] text-zinc-300 font-medium p-4 focus:border-orange-500/50 transition-all font-mono text-xs"
+                                    placeholder="/hero_1.png, /hero_2.png ..."
+                                    value={settings.hero_images}
+                                    onChange={(e) => setSettings({ ...settings, hero_images: e.target.value })}
+                                />
+                                <p className="text-[9px] text-zinc-600 font-bold uppercase mt-3 px-1 italic">Comma separated paths or URLs. Local uploads are appended automatically.</p>
                             </div>
                         </div>
                     </section>

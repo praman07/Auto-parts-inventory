@@ -151,7 +151,7 @@ export default function SalePage() {
     const handleCheckout = async () => {
         setIsProcessing(true)
         try {
-            // 1. Get a shop_id (use first shop)
+            // Get shop_id
             const { data: shops } = await supabase.from("shops").select("id").limit(1)
             const shopId = shops?.[0]?.id
             if (!shopId) {
@@ -160,81 +160,35 @@ export default function SalePage() {
                 return
             }
 
-            // 2. Create sale record
-            const { data: { user } } = await supabase.auth.getUser()
-            const { data: sale, error: saleError } = await supabase
-                .from("sales")
-                .insert({
-                    shop_id: shopId,
-                    user_id: user?.id,
-                    total_amount: total
-                })
-                .select("id")
-                .single()
-
-            if (saleError || !sale) {
-                toast.error("Failed to record sale: " + (saleError?.message || "Unknown error"))
-                setIsProcessing(false)
-                return
-            }
-
-            // 3. Insert sale items
-            const saleItems = cart.map((item) => ({
-                sale_id: sale.id,
+            const items = cart.map((item) => ({
                 product_id: item.id,
                 quantity: item.quantity,
                 unit_price: item.price,
-                subtotal: item.price * item.quantity,
             }))
 
-            const { error: itemsError } = await supabase.from("sale_items").insert(saleItems)
-            if (itemsError) console.error("Sale items error:", itemsError)
+            const res = await fetch('/api/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    shop_id: shopId,
+                    user_id: null, // Admin quick sale — no user
+                    total_amount: total,
+                    items,
+                }),
+            })
 
-            // 4. Create stock movements and decrement product quantities
-            const movements = cart.map((item) => ({
-                shop_id: shopId,
-                product_id: item.id,
-                type: "sale" as const,
-                quantity: -item.quantity,
-                reference_id: sale.id,
-                notes: `Sale #${sale.id.slice(0, 8)}`,
-            }))
-
-            const { error: movError } = await supabase.from("stock_movements").insert(movements)
-            if (movError) console.error("Stock movement error:", movError)
-
-            // 5. Decrement stock_quantity on each product
-            for (const item of cart) {
-                await supabase.rpc("decrement_stock" as never, {
-                    p_id: item.id,
-                    qty: item.quantity,
-                } as never).then(() => {
-                    // Fallback: update directly
-                })
-
-                // Direct update fallback
-                const { data: current } = await supabase
-                    .from("products")
-                    .select("stock_quantity")
-                    .eq("id", item.id)
-                    .single()
-
-                if (current) {
-                    await supabase
-                        .from("products")
-                        .update({ stock_quantity: Math.max(0, Number(current.stock_quantity) - item.quantity) })
-                        .eq("id", item.id)
-                }
+            const result = await res.json()
+            if (!res.ok || result.error) {
+                toast.error("Failed to record sale: " + (result.error || "Unknown error"))
+                setIsProcessing(false)
+                return
             }
 
             toast.success(`Sale of ₹${total.toLocaleString("en-IN")} recorded!`)
             setCart([])
 
-            // Refresh products to show updated stock
-            const { data: refreshed } = await supabase
-                .from("products")
-                .select("id, stock_quantity")
-
+            // Refresh product stock display
+            const { data: refreshed } = await supabase.from("products").select("id, stock_quantity")
             if (refreshed) {
                 setProducts((prev) =>
                     prev.map((p) => {

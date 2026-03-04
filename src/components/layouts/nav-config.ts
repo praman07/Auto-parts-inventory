@@ -44,7 +44,7 @@ export const navItems = [
     },
     {
         title: "Sales History",
-        href: "/dashboard/orders",
+        href: "/dashboard/sales",
         icon: ShoppingCart,
     },
     {
