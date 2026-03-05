@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { Phone, MapPin, MessageCircle } from "lucide-react";
+import { Phone, MapPin, MessageCircle, ArrowUpRight, Bike } from "lucide-react";
 
 export function Footer({ className }: { className?: string }) {
     const [settings, setSettings] = useState<any>(null);
@@ -19,65 +19,87 @@ export function Footer({ className }: { className?: string }) {
     const WHATSAPP_LINK = settings ? `https://wa.me/${settings.contact_whatsapp}` : "https://wa.me/918727061407";
 
     return (
-        <footer className={`w-full py-10 sm:py-14 text-white border-t ${className || "bg-zinc-900 border-zinc-800"}`}>
+        <footer className={`w-full py-16 sm:py-20 text-white bg-[#09090b] border-t border-white/[0.04] ${className || ""}`}>
             <div className="container px-4 md:px-6 mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 sm:gap-12">
 
                     {/* Brand & About */}
-                    <div className="space-y-4">
-                        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tighter italic">
+                    <div className="space-y-5 md:col-span-1">
+                        <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter italic">
                             Bhogal<span className="text-orange-500">Moto</span>
                         </h3>
-                        <p className="text-sm text-zinc-400 leading-relaxed max-w-xs font-bold">
-                            {settings?.about_text || "Your trusted workshop for motorcycle spare parts and professional servicing. Quality parts, expert mechanics."}
+                        <p className="text-sm text-zinc-500 leading-relaxed max-w-xs font-medium">
+                            {settings?.about_text || "Your trusted workshop for motorcycle spare parts and professional servicing since 1989."}
                         </p>
+                        <div className="flex items-center gap-2 mt-4">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-xs font-bold text-zinc-500">Open now</span>
+                        </div>
                     </div>
 
                     {/* Quick Links */}
-                    <div className="space-y-4">
-                        <h4 className="font-black text-lg">Quick Links</h4>
-                        <ul className="space-y-2 text-sm text-zinc-400">
-                            <li>
-                                <Link href="/shop" className="hover:text-orange-500 transition-colors font-bold">Browse Parts</Link>
-                            </li>
-                            <li>
-                                <Link href="/book" className="hover:text-orange-500 transition-colors font-bold">Book Service</Link>
-                            </li>
-                            <li>
-                                <Link href="/profile" className="hover:text-orange-500 transition-colors font-bold">My Appointments</Link>
-                            </li>
-                            <li>
-                                <Link href="/contact" className="hover:text-orange-500 transition-colors font-bold">Contact Us</Link>
-                            </li>
+                    <div className="space-y-5">
+                        <h4 className="font-black text-sm uppercase tracking-[0.2em] text-zinc-400">Navigate</h4>
+                        <ul className="space-y-3 text-sm">
+                            {[
+                                { label: "Browse Parts", href: "/shop" },
+                                { label: "Book Service", href: "/book" },
+                                { label: "My Appointments", href: "/profile" },
+                                { label: "Contact Us", href: "/contact" },
+                            ].map((link) => (
+                                <li key={link.href}>
+                                    <Link href={link.href} className="text-zinc-500 hover:text-orange-500 transition-colors font-medium flex items-center gap-1 group">
+                                        {link.label}
+                                        <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Services */}
+                    <div className="space-y-5">
+                        <h4 className="font-black text-sm uppercase tracking-[0.2em] text-zinc-400">Services</h4>
+                        <ul className="space-y-3 text-sm">
+                            {["Engine Service", "Spare Parts", "Electrical Repair", "Oil Change", "Brake Service"].map((service) => (
+                                <li key={service}>
+                                    <span className="text-zinc-500 font-medium">{service}</span>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     {/* Contact Info */}
-                    <div className="space-y-4">
-                        <h4 className="font-black text-lg text-white">Get in Touch</h4>
-                        <ul className="space-y-3 text-sm text-zinc-400">
-                            <li className="flex items-start gap-2">
+                    <div className="space-y-5">
+                        <h4 className="font-black text-sm uppercase tracking-[0.2em] text-zinc-400">Get in Touch</h4>
+                        <ul className="space-y-4 text-sm">
+                            <li className="flex items-start gap-3">
                                 <MapPin className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                                <span className="font-bold leading-relaxed">{settings?.address || "Bhogal Auto Service, Ludhiana, Punjab"}</span>
+                                <span className="text-zinc-500 font-medium leading-relaxed">{settings?.address || "Bhogal Auto Service, Ludhiana, Punjab"}</span>
                             </li>
-                            <li className="flex items-center gap-2">
+                            <li className="flex items-center gap-3">
                                 <Phone className="h-4 w-4 text-orange-500 shrink-0" />
-                                <a href={`tel:${settings?.contact_phone || "+918727061407"}`} className="hover:text-orange-500 transition-colors font-bold">
+                                <a href={`tel:${settings?.contact_phone || "+918727061407"}`} className="text-zinc-500 hover:text-orange-500 transition-colors font-medium">
                                     {settings?.contact_phone || "+91 87270 61407"}
                                 </a>
                             </li>
-                            <li>
-                                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 transition-colors rounded-xl text-white text-xs font-black uppercase tracking-wider mt-2 shadow-lg shadow-green-900/20">
-                                    <MessageCircle className="h-4 w-4" /> Chat on WhatsApp
+                            <li className="mt-4">
+                                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-500 transition-all rounded-xl text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-green-900/30 hover:-translate-y-0.5">
+                                    <MessageCircle className="h-4 w-4" /> WhatsApp Us
                                 </a>
                             </li>
                         </ul>
                     </div>
-
                 </div>
 
-                <div className="border-t border-zinc-800 mt-8 pt-6 text-center text-xs text-zinc-500 font-medium">
-                    © {new Date().getFullYear()} Bhogal Moto Spare. All rights reserved.
+                {/* Bottom bar */}
+                <div className="border-t border-white/[0.04] mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-xs text-zinc-600 font-medium">
+                        © {new Date().getFullYear()} Bhogal Moto Spare. All rights reserved.
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-zinc-600 font-medium">
+                        <Bike className="h-3 w-3" /> Built with passion in Ludhiana
+                    </div>
                 </div>
             </div>
         </footer>
